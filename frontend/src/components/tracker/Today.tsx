@@ -37,12 +37,7 @@ export default function Today() {
           </div>
         ))}
         <Input placeholder="Zusätzliche Notizen" name="notes" />
-        <Button
-          type="submit"
-          styleType="primary"
-          text="Fertig"
-          onClick={() => handleSubmit}
-        />
+        <Button type="submit" styleType="primary" text="Fertig" />
       </form>
     </div>
   );

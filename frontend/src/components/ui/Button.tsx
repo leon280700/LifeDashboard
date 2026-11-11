@@ -2,7 +2,7 @@ type ButtonProps = {
   styleType: "primary" | "secondary";
   type: "button" | "submit";
   text: string;
-  onClick: () => void;
+  onClick?: () => void;
 };
 
 export default function Button({
