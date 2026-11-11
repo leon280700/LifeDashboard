@@ -1,15 +1,15 @@
 import { useState } from "react";
-import { GoalTrackerCategories } from "../../types/tracker/tracker.types";
+import { GoalTrackerCategories } from "../../types/tracker.types";
 import Button from "../ui/Button";
 import Input from "../ui/Input";
 
 export default function Today() {
   const [trackedToday, setTrackedToday] = useState(false);
-  const goals = GoalTrackerCategories; // todo
+  const goals = GoalTrackerCategories; // todo: only show the selected goals
 
   if (trackedToday) {
     return (
-      <div className="pb-2">
+      <div className="pb-2 bg-secondary border rounded mb-5">
         <p className="text-white">Heute getrackt</p>
         <Button
           type="button"
@@ -28,7 +28,7 @@ export default function Today() {
   };
 
   return (
-    <div className="pb-2">
+    <div className="p-4 bg-secondary border rounded mb-5">
       <form onSubmit={handleSubmit}>
         {goals.map((item, index) => (
           <div key={index} className="mb-2">
