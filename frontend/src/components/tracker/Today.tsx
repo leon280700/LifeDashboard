@@ -1,20 +1,34 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useGoalApi } from "../../api/useGoalApi";
 import { useTrackerApi } from "../../api/useTrackerApi";
 import Button from "../ui/Button";
 import Input from "../ui/Input";
 
-export default function Today() {
+export default function Today({ onSaved }: { onSaved?: () => void }) {
   const [trackedToday, setTrackedToday] = useState(false);
   const [checks, setChecks] = useState<Record<number, boolean>>({});
   const [notes, setNotes] = useState("");
   const { goals, error: goalsError } = useGoalApi();
-  const { error: saveError, saveEntry } = useTrackerApi();
+  const { error: saveError, saveEntry, getTodaysEntry } = useTrackerApi();
   const error = goalsError || saveError;
+
+  useEffect(() => {
+    const date = new Date().toLocaleDateString("sv");
+    const loadTodaysEntry = async () => {
+      const entry = await getTodaysEntry(date);
+      console.log("Entry: ", entry);
+      if (entry) {
+        setTrackedToday(true);
+        setChecks(entry.checks);
+        setNotes(entry.notes);
+      }
+    };
+    loadTodaysEntry();
+  }, [getTodaysEntry]);
 
   if (trackedToday) {
     return (
-      <div className="pb-2 bg-secondary border rounded mb-5">
+      <div className="p-4 bg-secondary border rounded">
         <p className="text-white">Heute getrackt</p>
         <Button
           type="button"
@@ -29,11 +43,15 @@ export default function Today() {
   const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     const date = new Date().toLocaleDateString("sv"); // YYYY-MM-DD (lokal)
-    if (await saveEntry({ date, checks, notes })) setTrackedToday(true);
+    if (await saveEntry({ date, checks, notes })) {
+      setTrackedToday(true);
+      onSaved?.();
+    }
   };
 
   return (
-    <div className="p-4 bg-secondary border rounded mb-5">
+    <div className="p-4 bg-secondary border rounded">
+      <h2>Heute</h2>
       <form onSubmit={handleSubmit}>
         {goals.length === 0 && (
           <p className="text-white">Noch keine Ziele festgelegt.</p>

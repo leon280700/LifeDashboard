@@ -82,6 +82,35 @@ app.post('/api/tracker', (req, res) => {
   res.status(201).json({ date, saved: goals.length });
 });
 
+// Tracker: Tagesergebnis in % für einen Monat inkl. der damals gültigen Ziele.
+// Tage ohne Eintrag fehlen. Antwort: [{ date, percent, goals: [{ category, condition, achieved }] }]
+app.get('/api/tracker/month/:month', (req, res) => {
+  const { month } = req.params;
+  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) {
+    return res.status(400).json({ error: 'month im Format YYYY-MM erforderlich' });
+  }
+  const rows = db
+    .prepare(
+      `SELECT c.date, g.category, g.condition, c.achieved
+       FROM goal_checks c JOIN goals g ON g.id = c.goal_id
+       WHERE c.date LIKE ? ORDER BY c.date, g.id`,
+    )
+    .all(`${month}-%`);
+
+  const byDate = new Map();
+  for (const r of rows) {
+    if (!byDate.has(r.date)) byDate.set(r.date, []);
+    byDate.get(r.date).push({ category: r.category, condition: r.condition, achieved: !!r.achieved });
+  }
+  res.json(
+    [...byDate].map(([date, goals]) => ({
+      date,
+      percent: Math.round((100 * goals.filter((g) => g.achieved).length) / goals.length),
+      goals,
+    })),
+  );
+});
+
 // Tracker: Eingabe eines Tages lesen (inkl. damals gültiger Ziele)
 app.get('/api/tracker/:date', (req, res) => {
   const { date } = req.params;

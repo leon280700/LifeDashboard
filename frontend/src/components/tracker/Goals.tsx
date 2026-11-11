@@ -43,7 +43,7 @@ export default function Goals({ onSaved }: { onSaved: () => void }) {
 
   return (
     <div className="bg-secondary border rounded mb-5 p-4">
-      <h2>Ziele</h2>
+      <h2>Ziele festlegen</h2>
 
       <Button
         onClick={() => setIsOpen(!isOpen)}

@@ -17,5 +17,15 @@ export function useTrackerApi() {
     }
   }, []);
 
-  return { error, saveEntry };
+  const getTodaysEntry = useCallback(async (date: string) => {
+    setError("");
+    try {
+      return await request<TrackerEntry>(`/api/tracker/${date}`);
+    } catch {
+      setError("Eintrag konnte nicht geladen werden");
+      return null;
+    }
+  }, []);
+
+  return { error, saveEntry, getTodaysEntry };
 }

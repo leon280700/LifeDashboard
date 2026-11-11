@@ -22,3 +22,15 @@ export type TrackerEntry = {
 };
 
 export type GoalForm = Record<string, { selected: boolean; condition: string }>;
+
+export type DayGoal = {
+  category: string;
+  condition: string;
+  achieved: boolean;
+};
+
+export type DayPercent = {
+  date: string; // YYYY-MM-DD
+  percent: number; // 0-100
+  goals: DayGoal[];
+};
