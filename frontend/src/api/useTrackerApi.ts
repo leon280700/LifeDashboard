@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import type { TrackerEntry } from "../types/tracker.types";
-import { request } from "./http";
+import { HttpError, request } from "./http";
 
 /** Speichert die Tageseingabe des Trackers. */
 export function useTrackerApi() {
@@ -21,11 +21,23 @@ export function useTrackerApi() {
     setError("");
     try {
       return await request<TrackerEntry>(`/api/tracker/${date}`);
-    } catch {
+    } catch (e) {
+      if (e instanceof HttpError && e.status === 404) return null;
       setError("Eintrag konnte nicht geladen werden");
       return null;
     }
   }, []);
 
-  return { error, saveEntry, getTodaysEntry };
+  const deleteTodaysEntry = useCallback(async (date: string) => {
+    setError("");
+    try {
+      await request(`/api/tracker/${date}`, "DELETE");
+      return true;
+    } catch {
+      setError("Eintrag konnte nicht gelöscht werden");
+      return false;
+    }
+  }, []);
+
+  return { error, saveEntry, getTodaysEntry, deleteTodaysEntry };
 }

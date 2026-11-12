@@ -9,36 +9,37 @@ export default function Today({ onSaved }: { onSaved?: () => void }) {
   const [checks, setChecks] = useState<Record<number, boolean>>({});
   const [notes, setNotes] = useState("");
   const { goals, error: goalsError } = useGoalApi();
-  const { error: saveError, saveEntry, getTodaysEntry } = useTrackerApi();
+  const {
+    error: saveError,
+    saveEntry,
+    getTodaysEntry,
+    deleteTodaysEntry,
+  } = useTrackerApi();
   const error = goalsError || saveError;
 
   useEffect(() => {
     const date = new Date().toLocaleDateString("sv");
     const loadTodaysEntry = async () => {
       const entry = await getTodaysEntry(date);
-      console.log("Entry: ", entry);
       if (entry) {
-        setTrackedToday(true);
         setChecks(entry.checks);
         setNotes(entry.notes);
+        setTrackedToday(true);
       }
     };
     loadTodaysEntry();
   }, [getTodaysEntry]);
 
-  if (trackedToday) {
-    return (
-      <div className="p-4 rounded border border-neutral-600 bg-neutral-700">
-        <p className="text-white">Heute getrackt</p>
-        <Button
-          type="button"
-          styleType="primary"
-          text="Zurücksetzen"
-          onClick={() => setTrackedToday(false)}
-        />
-      </div>
-    );
-  }
+  const handleReset = async () => {
+    const date = new Date().toLocaleDateString("sv");
+    const removedEntry = await deleteTodaysEntry(date);
+    if (removedEntry) {
+      setChecks({});
+      setNotes("");
+      setTrackedToday(false);
+      onSaved?.();
+    }
+  };
 
   const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -48,6 +49,20 @@ export default function Today({ onSaved }: { onSaved?: () => void }) {
       onSaved?.();
     }
   };
+
+  if (trackedToday) {
+    return (
+      <div className="p-4 rounded border border-neutral-600 bg-neutral-700">
+        <p className="text-white">Heute getrackt</p>
+        <Button
+          type="button"
+          styleType="primary"
+          text="Zurücksetzen"
+          onClick={handleReset}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 rounded border border-neutral-600 bg-neutral-700">

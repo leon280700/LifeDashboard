@@ -122,8 +122,27 @@ app.get('/api/tracker/:date', (req, res) => {
     .all(date)
     .map((r) => ({ ...r, achieved: !!r.achieved }));
   const note = db.prepare('SELECT notes FROM day_notes WHERE date = ?').get(date);
+  if (checks.length === 0 && !note) return res.status(404).json({ error: 'Kein Eintrag für dieses Datum' });
   res.json({ date, checks, notes: note?.notes ?? '' });
 });
+
+app.delete('/api/tracker/:date', (req, res) => {
+  const { date } = req.params;
+  if (!isDate(date)) return res.status(400).json({ error: 'date im Format YYYY-MM-DD erforderlich' });
+  const deleteChecks = db.prepare('DELETE FROM goal_checks WHERE date = ?');
+  const deleteNotes = db.prepare('DELETE FROM day_notes WHERE date = ?');
+  db.exec('BEGIN');
+  try {
+    deleteChecks.run(date);
+    deleteNotes.run(date);
+    db.exec('COMMIT');
+  } catch (err) {
+    db.exec('ROLLBACK');
+    throw err;
+  }
+  res.json({ date, deleted: true });
+});
+
 
 // Serve static files from the React build
 app.use(express.static(path.join(__dirname, '../frontend/dist')));
