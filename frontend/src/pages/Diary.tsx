@@ -12,34 +12,41 @@ import {
 } from "@/types/diary.types";
 import { useEffect, useState, type SubmitEvent } from "react";
 
+const knownActivities = Object.values(activities) as Activity[];
+
 export default function Diary() {
   const [selectedMood, setSelectedMood] = useState<number | null>(null);
   const [selectedActivities, setSelectedActivities] = useState<Activity[]>([]);
   const [notes, setNotes] = useState("");
   const [alreadySavedToday, setAlreadySavedToday] = useState(false);
-  const { saveDiaryEntry, deleteDiaryEntry, error } = useDiaryApi();
+  const [loading, setLoading] = useState(true);
+  const {
+    getDiaryEntry,
+    saveDiaryEntry,
+    deleteDiaryEntry,
+    error,
+    setError,
+    saving,
+  } = useDiaryApi();
 
   useEffect(() => {
-    const checkIfAlreadySaved = async () => {
-      const date = today();
-      try {
-        const response = await fetch(`/api/diary/${date}`);
-        if (response.ok) {
-          const entry: DiaryEntry = await response.json();
-          if (entry) {
-            setAlreadySavedToday(true);
-            setSelectedMood(entry.mood);
-            setSelectedActivities(entry.activities);
-            setNotes(entry.notes);
-          }
-        }
-      } catch (err) {
-        console.error("Error checking diary entry:", err);
+    let cancelled = false;
+    getDiaryEntry(today()).then((entry) => {
+      if (cancelled) return;
+      if (entry) {
+        setAlreadySavedToday(true);
+        setSelectedMood(entry.mood);
+        setSelectedActivities(
+          entry.activities.filter((a) => knownActivities.includes(a)),
+        );
+        setNotes(entry.notes);
       }
+      setLoading(false);
+    });
+    return () => {
+      cancelled = true;
     };
-
-    checkIfAlreadySaved();
-  }, []);
+  }, [getDiaryEntry]);
 
   const toggleActivity = (activity: Activity) =>
     setSelectedActivities((prev) =>
@@ -51,11 +58,11 @@ export default function Diary() {
   const handleSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (selectedMood === null) {
-      alert("Bitte wähle eine Stimmung aus.");
+      setError("Bitte wähle eine Stimmung aus.");
       return;
     }
     const entry: DiaryEntry = {
-      date: new Date().toLocaleDateString("sv"),
+      date: today(),
       mood: selectedMood,
       activities: selectedActivities,
       notes,
@@ -74,6 +81,8 @@ export default function Diary() {
     }
   };
 
+  if (loading) return null;
+
   if (alreadySavedToday) {
     return (
       <div className="mx-auto mt-12 max-w-6xl px-4">
@@ -83,10 +92,9 @@ export default function Diary() {
           type="button"
           styleType="primary"
           text="Zurücksetzen"
-          onClick={() => {
-            handleReset();
-          }}
+          onClick={handleReset}
         />
+        {error && <ErrorBox message={error} />}
       </div>
     );
   }
@@ -125,7 +133,12 @@ export default function Diary() {
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
         />
-        <Button type="submit" styleType="primary" text="Speichern" />
+        <Button
+          type="submit"
+          styleType="primary"
+          text="Speichern"
+          disabled={saving}
+        />
       </form>
       {error && <ErrorBox message={error} />}
     </div>

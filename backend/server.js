@@ -11,7 +11,11 @@ app.use(express.json());
 
 
 const today = () => new Date().toLocaleDateString('sv'); // YYYY-MM-DD (lokal)
-const isDate = (d) => /^\d{4}-\d{2}-\d{2}$/.test(d ?? '');
+const isDate = (d) => {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(d ?? '')) return false;
+  const parsed = new Date(`${d}T00:00:00Z`);
+  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().startsWith(d); // echtes Kalenderdatum
+};
 
 // Goals: aktuell gültige Ziele
 app.get('/api/goals', (req, res) => {
@@ -147,6 +151,9 @@ app.delete('/api/tracker/:date', (req, res) => {
 // Tagebuch: Mood-Wertebereich (hier anpassen, wenn erweitert werden soll)
 const MOOD_MIN = 0;
 const MOOD_MAX = 4;
+const MAX_NOTES = 2000;
+const MAX_ACTIVITIES = 50;
+const MAX_ACTIVITY_LENGTH = 100;
 
 const readDiary = (date) => {
   const entry = db.prepare('SELECT mood, notes FROM diary_entries WHERE date = ?').get(date);
@@ -170,8 +177,17 @@ app.put('/api/diary', (req, res) => {
     return res.status(400).json({ error: 'activities muss eine Liste von Strings sein' });
   }
   if (typeof notes !== 'string') return res.status(400).json({ error: 'notes muss ein String sein' });
+  if (notes.length > MAX_NOTES) {
+    return res.status(400).json({ error: `notes darf höchstens ${MAX_NOTES} Zeichen lang sein` });
+  }
 
   const names = [...new Set(activities.map((a) => a.trim()).filter(Boolean))];
+  if (names.length > MAX_ACTIVITIES || names.some((a) => a.length > MAX_ACTIVITY_LENGTH)) {
+    return res
+      .status(400)
+      .json({ error: `activities: höchstens ${MAX_ACTIVITIES} Einträge mit je max. ${MAX_ACTIVITY_LENGTH} Zeichen` });
+  }
+  const existed = !!db.prepare('SELECT 1 FROM diary_entries WHERE date = ?').get(date);
   db.exec('BEGIN');
   try {
     db.prepare(
@@ -185,7 +201,7 @@ app.put('/api/diary', (req, res) => {
     db.exec('ROLLBACK');
     throw err;
   }
-  res.status(201).json(readDiary(date));
+  res.status(existed ? 200 : 201).json(readDiary(date));
 });
 
 // Tagebuch: bisher verwendete Activities (für Vorschläge)
@@ -223,6 +239,14 @@ app.delete('/api/diary/:date', (req, res) => {
   res.json({ date, deleted: true });
 });
 
+
+// Fehler der API immer als JSON { error } ausliefern
+app.use('/api', (err, req, res, next) => {
+  if (res.headersSent) return next(err);
+  if (err.type === 'entity.parse.failed') return res.status(400).json({ error: 'Ungültiges JSON' });
+  console.error(err);
+  res.status(500).json({ error: 'Interner Serverfehler' });
+});
 
 // Serve static files from the React build
 app.use(express.static(path.join(__dirname, '../frontend/dist')));

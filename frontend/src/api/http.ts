@@ -17,10 +17,13 @@ export async function request<T>(
       body === undefined ? undefined : { "Content-Type": "application/json" },
     body: body === undefined ? undefined : JSON.stringify(body),
   });
-  if (!res.ok)
-    throw new HttpError(
-      `${method} ${url} fehlgeschlagen (${res.status})`,
-      res.status,
-    );
-  return res.json();
+  if (!res.ok) {
+    const data = await res.json().catch(() => null);
+    const message =
+      typeof data?.error === "string"
+        ? data.error
+        : `${method} ${url} fehlgeschlagen (${res.status})`;
+    throw new HttpError(message, res.status);
+  }
+  return res.json().catch(() => undefined as T);
 }
