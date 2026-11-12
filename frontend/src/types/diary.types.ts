@@ -20,3 +20,9 @@ export type DiaryEntry = {
   activities: Activity[];
   notes: string;
 };
+
+export type DiaryFormValues = {
+  mood: number | null;
+  activities: Activity[];
+  notes: string;
+};

@@ -44,7 +44,6 @@ export default function useDiaryApi() {
 
   return {
     error,
-    setError,
     saving,
     getDiaryEntry,
     saveDiaryEntry,
