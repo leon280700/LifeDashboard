@@ -1,6 +1,7 @@
 type InputProps = {
   placeholder?: string;
   name?: string;
+  className?: string;
   value?: string;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 };
@@ -10,6 +11,7 @@ export default function Input({
   placeholder,
   name,
   value,
+  className = "",
 }: InputProps) {
   return (
     <input
@@ -18,7 +20,7 @@ export default function Input({
       placeholder={placeholder}
       name={name}
       value={value}
-      className="rounded border border-neutral-300 bg-neutral-100 p-2 text-black"
+      className={`rounded border border-neutral-300 bg-neutral-100 p-2 text-black ${className}`}
     />
   );
 }

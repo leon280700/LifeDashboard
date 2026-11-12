@@ -55,33 +55,36 @@ export default function Goals({ onSaved }: { onSaved: () => void }) {
       {isOpen && (
         <div className="mt-3">
           <form onSubmit={handleSubmit}>
-            {GoalTrackerCategories.map((item) => (
-              <div key={item} className="mb-2">
-                <label className="mr-2 text-white">{item}</label>
-                <input
-                  type="checkbox"
-                  name={item}
-                  checked={form[item].selected}
-                  onChange={(e) =>
-                    setForm({
-                      ...form,
-                      [item]: { ...form[item], selected: e.target.checked },
-                    })
-                  }
-                />
-                <Input
-                  placeholder="Bedingungen..."
-                  name={`${item}-notes`}
-                  value={form[item].condition}
-                  onChange={(e) =>
-                    setForm({
-                      ...form,
-                      [item]: { ...form[item], condition: e.target.value },
-                    })
-                  }
-                />
-              </div>
-            ))}
+            <div className="grid grid-cols-[auto_auto_1fr] items-center gap-x-4 gap-y-3">
+              {GoalTrackerCategories.map((item) => (
+                <div key={item} className="contents">
+                  <input
+                    type="checkbox"
+                    name={item}
+                    checked={form[item].selected}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        [item]: { ...form[item], selected: e.target.checked },
+                      })
+                    }
+                  />
+                  <label className="text-white">{item}</label>
+                  <Input
+                    placeholder="Bedingungen..."
+                    name={`${item}-notes`}
+                    className="w-full"
+                    value={form[item].condition}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        [item]: { ...form[item], condition: e.target.value },
+                      })
+                    }
+                  />
+                </div>
+              ))}
+            </div>
             {error && <p className="text-red-500">{error}</p>}
             <Button type="submit" styleType="primary" text="Speichern" />
           </form>

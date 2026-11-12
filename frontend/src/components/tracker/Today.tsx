@@ -71,21 +71,23 @@ export default function Today({ onSaved }: { onSaved?: () => void }) {
         {goals.length === 0 && (
           <p className="text-white">Noch keine Ziele festgelegt.</p>
         )}
-        {goals.map((goal) => (
-          <div key={goal.id} className="mb-2">
-            <label className="mr-2 text-white">
-              {goal.category}
-              {goal.condition && ` (${goal.condition})`}
-            </label>
-            <input
-              type="checkbox"
-              checked={checks[goal.id] ?? false}
-              onChange={(e) =>
-                setChecks({ ...checks, [goal.id]: e.target.checked })
-              }
-            />
-          </div>
-        ))}
+        <div className="grid grid-cols-[auto_auto_1fr] items-center gap-x-4 gap-y-3">
+          {goals.map((goal) => (
+            <div key={goal.id} className="contents">
+              <input
+                type="checkbox"
+                checked={checks[goal.id] ?? false}
+                onChange={(e) =>
+                  setChecks({ ...checks, [goal.id]: e.target.checked })
+                }
+              />
+              <label className="mr-2 text-white">{goal.category}</label>
+              <label className="mr-2 text-white">
+                {goal.condition && ` (${goal.condition})`}
+              </label>
+            </div>
+          ))}
+        </div>
         <Input
           placeholder="Zusätzliche Notizen"
           name="notes"
