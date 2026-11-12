@@ -1,9 +1,6 @@
 import type { DiaryEntry } from "@/types/diary.types";
 import { useCallback, useState } from "react";
-import { HttpError, request } from "./http";
-
-const messageFor = (e: unknown, fallback: string) =>
-  e instanceof HttpError && e.status === 400 ? e.message : fallback;
+import { HttpError, errorMessage, request } from "./http";
 
 export default function useDiaryApi() {
   const [error, setError] = useState("");
@@ -27,7 +24,7 @@ export default function useDiaryApi() {
       await request<DiaryEntry>("/api/diary", "PUT", entry);
       return true;
     } catch (e) {
-      setError(messageFor(e, "Speichern fehlgeschlagen"));
+      setError(errorMessage(e, "Speichern fehlgeschlagen"));
       return false;
     } finally {
       setSaving(false);
@@ -40,7 +37,7 @@ export default function useDiaryApi() {
       await request(`/api/diary/${date}`, "DELETE");
       return true;
     } catch (e) {
-      setError(messageFor(e, "Löschen fehlgeschlagen"));
+      setError(errorMessage(e, "Löschen fehlgeschlagen"));
       return false;
     }
   }, []);

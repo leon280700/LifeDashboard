@@ -1,33 +1,52 @@
 import { useState } from "react";
 import Button from "../ui/Button";
-import { useGoalApi } from "../../api/useGoalApi";
 import {
   GoalTrackerCategories,
   type Goal,
   type GoalForm,
+  type GoalInput,
 } from "../../types/tracker.types";
 import Input from "../ui/Input";
 import ErrorBox from "../ui/ErrorBox";
 
-const emptyForm = (): GoalForm =>
-  Object.fromEntries(
-    GoalTrackerCategories.map((c) => [c, { selected: false, condition: "" }]),
-  );
+// Bekannte Kategorien plus aktive Ziele, die nicht (mehr) in der Liste stehen,
+// damit sie beim Speichern nicht unbemerkt beendet werden.
+const categoriesFor = (goals: Goal[]) => [
+  ...GoalTrackerCategories,
+  ...goals
+    .map((g) => g.category)
+    .filter((c) => !GoalTrackerCategories.includes(c)),
+];
 
 const formFromGoals = (goals: Goal[]): GoalForm => {
-  const form = emptyForm();
+  const form: GoalForm = Object.fromEntries(
+    categoriesFor(goals).map((c) => [c, { selected: false, condition: "" }]),
+  );
   for (const g of goals) {
-    if (g.category in form)
-      form[g.category] = { selected: true, condition: g.condition };
+    form[g.category] = { selected: true, condition: g.condition };
   }
   return form;
 };
 
-export default function Goals({ onSaved }: { onSaved: () => void }) {
+type Props = {
+  goals: Goal[];
+  error: string;
+  saving: boolean;
+  saveGoals: (list: GoalInput[]) => Promise<boolean>;
+  onSaved: () => void;
+};
+
+export default function Goals({
+  goals,
+  error,
+  saving,
+  saveGoals,
+  onSaved,
+}: Props) {
   const [isOpen, setIsOpen] = useState(false);
   const [edits, setEdits] = useState<GoalForm | null>(null);
-  const { goals, error, saveGoals } = useGoalApi();
 
+  const categories = categoriesFor(goals);
   const form: GoalForm = edits ?? formFromGoals(goals);
   const setForm = setEdits;
 
@@ -57,7 +76,7 @@ export default function Goals({ onSaved }: { onSaved: () => void }) {
         <div className="mt-3">
           <form onSubmit={handleSubmit}>
             <div className="grid grid-cols-[auto_auto_1fr] items-center gap-x-4 gap-y-3">
-              {GoalTrackerCategories.map((item) => (
+              {categories.map((item) => (
                 <div key={item} className="contents">
                   <input
                     type="checkbox"
@@ -87,7 +106,12 @@ export default function Goals({ onSaved }: { onSaved: () => void }) {
               ))}
             </div>
             {error && <ErrorBox message={error} />}
-            <Button type="submit" styleType="primary" text="Speichern" />
+            <Button
+              type="submit"
+              styleType="primary"
+              text="Speichern"
+              disabled={saving}
+            />
           </form>
         </div>
       )}

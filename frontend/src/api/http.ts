@@ -27,3 +27,5 @@ export async function request<T>(
   }
   return res.json().catch(() => undefined as T);
 }
+export const errorMessage = (e: unknown, fallback: string) =>
+  e instanceof HttpError && e.status === 400 ? e.message : fallback;

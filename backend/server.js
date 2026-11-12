@@ -17,6 +17,10 @@ const isDate = (d) => {
   return !Number.isNaN(parsed.getTime()) && parsed.toISOString().startsWith(d); // echtes Kalenderdatum
 };
 
+const MAX_NOTES = 2000;
+const MAX_CATEGORY = 50;
+const MAX_CONDITION = 200;
+
 // Goals: aktuell gültige Ziele
 app.get('/api/goals', (req, res) => {
   res.json(
@@ -29,15 +33,24 @@ app.get('/api/goals', (req, res) => {
 // Goals: neue Zielliste setzen. Body: { goals: [{ category, condition }] }
 // Geänderte oder entfernte Ziele werden beendet (active_to), geänderte/neue als neue Zeile angelegt.
 app.put('/api/goals', (req, res) => {
-  const list = req.body?.goals;
+  const input = req.body?.goals;
   if (
-    !Array.isArray(list) ||
-    list.some((g) => typeof g?.category !== 'string' || !g.category.trim()) ||
-    new Set(list.map((g) => g.category)).size !== list.length
+    !Array.isArray(input) ||
+    input.some((g) => typeof g?.category !== 'string' || !g.category.trim()) ||
+    input.some((g) => g.condition != null && typeof g.condition !== 'string')
   ) {
-    return res.status(400).json({ error: 'goals: [{ category, condition }] mit eindeutigen Kategorien erforderlich' });
+    return res.status(400).json({ error: 'goals: [{ category, condition }] erforderlich' });
   }
-  const wanted = new Map(list.map((g) => [g.category, String(g.condition ?? '').trim()]));
+  const list = input.map((g) => ({ category: g.category.trim(), condition: (g.condition ?? '').trim() }));
+  if (new Set(list.map((g) => g.category)).size !== list.length) {
+    return res.status(400).json({ error: 'goals: Kategorien müssen eindeutig sein' });
+  }
+  if (list.some((g) => g.category.length > MAX_CATEGORY || g.condition.length > MAX_CONDITION)) {
+    return res
+      .status(400)
+      .json({ error: `goals: category höchstens ${MAX_CATEGORY}, condition höchstens ${MAX_CONDITION} Zeichen` });
+  }
+  const wanted = new Map(list.map((g) => [g.category, g.condition]));
   const current = db.prepare('SELECT id, category, condition FROM goals WHERE active_to IS NULL').all();
   const close = db.prepare('UPDATE goals SET active_to = ? WHERE id = ?');
   const insert = db.prepare('INSERT INTO goals (category, condition, active_from) VALUES (?, ?, ?)');
@@ -64,9 +77,15 @@ app.put('/api/goals', (req, res) => {
 // Body: { date: "YYYY-MM-DD", checks: { "<goalId>": true, ... }, notes?: string }
 app.post('/api/tracker', (req, res) => {
   const { date, checks, notes = '' } = req.body ?? {};
-  if (!isDate(date) || typeof checks !== 'object' || checks === null) {
-    return res.status(400).json({ error: 'date (YYYY-MM-DD) und checks erforderlich' });
+  if (!isDate(date)) return res.status(400).json({ error: 'date (YYYY-MM-DD) erforderlich' });
+  if (typeof checks !== 'object' || checks === null || Array.isArray(checks)) {
+    return res.status(400).json({ error: 'checks muss ein Objekt { "<goalId>": boolean } sein' });
   }
+  if (typeof notes !== 'string') return res.status(400).json({ error: 'notes muss ein String sein' });
+  if (notes.length > MAX_NOTES) {
+    return res.status(400).json({ error: `notes darf höchstens ${MAX_NOTES} Zeichen lang sein` });
+  }
+  const existed = !!db.prepare('SELECT 1 FROM day_notes WHERE date = ?').get(date);
   const goals = db.prepare('SELECT id FROM goals WHERE active_to IS NULL').all();
   const upsertCheck = db.prepare(
     'INSERT INTO goal_checks (date, goal_id, achieved) VALUES (?, ?, ?) ON CONFLICT(date, goal_id) DO UPDATE SET achieved = excluded.achieved',
@@ -77,13 +96,13 @@ app.post('/api/tracker', (req, res) => {
   db.exec('BEGIN');
   try {
     for (const g of goals) upsertCheck.run(date, g.id, checks[g.id] ? 1 : 0);
-    upsertNotes.run(date, String(notes));
+    upsertNotes.run(date, notes.trim());
     db.exec('COMMIT');
   } catch (err) {
     db.exec('ROLLBACK');
     throw err;
   }
-  res.status(201).json({ date, saved: goals.length });
+  res.status(existed ? 200 : 201).json({ date, saved: goals.length });
 });
 
 // Tracker: Tagesergebnis in % für einen Monat inkl. der damals gültigen Ziele.
@@ -151,7 +170,6 @@ app.delete('/api/tracker/:date', (req, res) => {
 // Tagebuch: Mood-Wertebereich (hier anpassen, wenn erweitert werden soll)
 const MOOD_MIN = 0;
 const MOOD_MAX = 4;
-const MAX_NOTES = 2000;
 const MAX_ACTIVITIES = 50;
 const MAX_ACTIVITY_LENGTH = 100;
 

@@ -21,6 +21,17 @@ export type TrackerEntry = {
   notes: string;
 };
 
+export type TrackerEntryResponse = {
+  date: string;
+  checks: {
+    goalId: number;
+    category: string;
+    condition: string;
+    achieved: boolean;
+  }[];
+  notes: string;
+};
+
 export type GoalForm = Record<string, { selected: boolean; condition: string }>;
 
 export type DayGoal = {

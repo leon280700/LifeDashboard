@@ -1,30 +1,46 @@
 import { useCallback, useState } from "react";
-import type { TrackerEntry } from "../types/tracker.types";
-import { HttpError, request } from "./http";
+import type {
+  TrackerEntry,
+  TrackerEntryResponse,
+} from "../types/tracker.types";
+import { HttpError, errorMessage, request } from "./http";
 
-/** Speichert die Tageseingabe des Trackers. */
 export function useTrackerApi() {
   const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
 
   const saveEntry = useCallback(async (entry: TrackerEntry) => {
     setError("");
+    setSaving(true);
     try {
       await request("/api/tracker", "POST", entry);
       return true;
-    } catch {
-      setError("Speichern fehlgeschlagen");
+    } catch (e) {
+      setError(errorMessage(e, "Speichern fehlgeschlagen"));
       return false;
+    } finally {
+      setSaving(false);
     }
   }, []);
 
   const getTodaysEntry = useCallback(async (date: string) => {
     setError("");
     try {
-      return await request<TrackerEntry>(`/api/tracker/${date}`);
+      const res = await request<TrackerEntryResponse>(`/api/tracker/${date}`);
+      const entry: TrackerEntry = {
+        date: res.date,
+        checks: Object.fromEntries(
+          res.checks.map((c) => [c.goalId, c.achieved]),
+        ),
+        notes: res.notes,
+      };
+      return { entry, failed: false };
     } catch (e) {
-      if (e instanceof HttpError && e.status === 404) return null;
+      if (e instanceof HttpError && e.status === 404) {
+        return { entry: null, failed: false };
+      }
       setError("Eintrag konnte nicht geladen werden");
-      return null;
+      return { entry: null, failed: true };
     }
   }, []);
 
@@ -33,11 +49,11 @@ export function useTrackerApi() {
     try {
       await request(`/api/tracker/${date}`, "DELETE");
       return true;
-    } catch {
-      setError("Eintrag konnte nicht gelöscht werden");
+    } catch (e) {
+      setError(errorMessage(e, "Eintrag konnte nicht gelöscht werden"));
       return false;
     }
   }, []);
 
-  return { error, saveEntry, getTodaysEntry, deleteTodaysEntry };
+  return { error, saving, getTodaysEntry, saveEntry, deleteTodaysEntry };
 }
