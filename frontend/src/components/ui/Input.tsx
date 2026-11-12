@@ -18,7 +18,7 @@ export default function Input({
       placeholder={placeholder}
       name={name}
       value={value}
-      className="bg-light text-black border rounded p-2"
+      className="rounded border border-neutral-300 bg-neutral-100 p-2 text-black"
     />
   );
 }

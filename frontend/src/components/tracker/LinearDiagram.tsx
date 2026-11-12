@@ -86,15 +86,15 @@ export default function LinearDiagram({
   };
 
   return (
-    <div className="bg-secondary border rounded mb-5 p-4">
-      <div className="d-flex align-items-center justify-content-between">
+    <div className="mb-12 p-4 rounded border border-neutral-600 bg-neutral-700">
+      <div className="flex items-center justify-between">
         <Button
           type="button"
           styleType="primary"
           text="<"
           onClick={() => goToMonth(-1)}
         />
-        <h2 className="text-white mb-0">
+        <h2 className="mb-0 text-white">
           {monthFormat.format(new Date(view.year, view.month - 1, 1))}
         </h2>
         <Button
@@ -105,7 +105,7 @@ export default function LinearDiagram({
           disabled={isCurrentMonth}
         />
       </div>
-      {error && <p className="text-danger">{error}</p>}
+      {error && <p className="text-red-500">{error}</p>}
       <ReactApexChart
         options={options}
         series={series}

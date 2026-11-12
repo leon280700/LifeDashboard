@@ -28,7 +28,7 @@ export default function Today({ onSaved }: { onSaved?: () => void }) {
 
   if (trackedToday) {
     return (
-      <div className="p-4 bg-secondary border rounded">
+      <div className="p-4 rounded border border-neutral-600 bg-neutral-700">
         <p className="text-white">Heute getrackt</p>
         <Button
           type="button"
@@ -50,15 +50,15 @@ export default function Today({ onSaved }: { onSaved?: () => void }) {
   };
 
   return (
-    <div className="p-4 bg-secondary border rounded">
-      <h2>Heute</h2>
+    <div className="p-4 rounded border border-neutral-600 bg-neutral-700">
+      <h2 className="mb-2 text-2xl font-medium">Heute</h2>
       <form onSubmit={handleSubmit}>
         {goals.length === 0 && (
           <p className="text-white">Noch keine Ziele festgelegt.</p>
         )}
         {goals.map((goal) => (
           <div key={goal.id} className="mb-2">
-            <label className="text-white mr-2">
+            <label className="mr-2 text-white">
               {goal.category}
               {goal.condition && ` (${goal.condition})`}
             </label>
@@ -77,7 +77,7 @@ export default function Today({ onSaved }: { onSaved?: () => void }) {
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
         />
-        {error && <p className="text-danger">{error}</p>}
+        {error && <p className="text-red-500">{error}</p>}
         <Button type="submit" styleType="primary" text="Fertig" />
       </form>
     </div>

@@ -42,8 +42,8 @@ export default function Goals({ onSaved }: { onSaved: () => void }) {
   };
 
   return (
-    <div className="bg-secondary border rounded mb-5 p-4">
-      <h2>Ziele festlegen</h2>
+    <div className="mb-12 p-4 rounded border border-neutral-600 bg-neutral-700">
+      <h2 className="mb-2 text-2xl font-medium">Ziele festlegen</h2>
 
       <Button
         onClick={() => setIsOpen(!isOpen)}
@@ -57,7 +57,7 @@ export default function Goals({ onSaved }: { onSaved: () => void }) {
           <form onSubmit={handleSubmit}>
             {GoalTrackerCategories.map((item) => (
               <div key={item} className="mb-2">
-                <label className="text-white mr-2">{item}</label>
+                <label className="mr-2 text-white">{item}</label>
                 <input
                   type="checkbox"
                   name={item}
@@ -82,7 +82,7 @@ export default function Goals({ onSaved }: { onSaved: () => void }) {
                 />
               </div>
             ))}
-            {error && <p className="text-danger">{error}</p>}
+            {error && <p className="text-red-500">{error}</p>}
             <Button type="submit" styleType="primary" text="Speichern" />
           </form>
         </div>
