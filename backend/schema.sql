@@ -23,3 +23,17 @@ CREATE TABLE IF NOT EXISTS day_notes (
   date  TEXT PRIMARY KEY,
   notes TEXT NOT NULL DEFAULT ''
 );
+
+-- Tagebuch: ein Eintrag pro Tag. Der Wertebereich der Mood wird bewusst
+-- nur im Server geprüft (MOOD_MIN/MOOD_MAX in server.js), damit er sich ohne Migration erweitern lässt.
+CREATE TABLE IF NOT EXISTS diary_entries (
+  date  TEXT PRIMARY KEY,             -- YYYY-MM-DD
+  mood  INTEGER NOT NULL,
+  notes TEXT NOT NULL DEFAULT ''
+);
+
+CREATE TABLE IF NOT EXISTS diary_activities (
+  date     TEXT NOT NULL REFERENCES diary_entries(date) ON DELETE CASCADE,
+  activity TEXT NOT NULL,
+  PRIMARY KEY (date, activity)
+);

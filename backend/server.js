@@ -144,6 +144,86 @@ app.delete('/api/tracker/:date', (req, res) => {
 });
 
 
+// Tagebuch: Mood-Wertebereich (hier anpassen, wenn erweitert werden soll)
+const MOOD_MIN = 0;
+const MOOD_MAX = 4;
+
+const readDiary = (date) => {
+  const entry = db.prepare('SELECT mood, notes FROM diary_entries WHERE date = ?').get(date);
+  if (!entry) return null;
+  const activities = db
+    .prepare('SELECT activity FROM diary_activities WHERE date = ? ORDER BY rowid')
+    .all(date)
+    .map((r) => r.activity);
+  return { date, mood: entry.mood, activities, notes: entry.notes };
+};
+
+// Tagebuch: Eintrag speichern (legt an oder überschreibt den Tag)
+// Body: { date: "YYYY-MM-DD", mood: 0..4, activities?: string[], notes?: string }
+app.put('/api/diary', (req, res) => {
+  const { date, mood, activities = [], notes = '' } = req.body ?? {};
+  if (!isDate(date)) return res.status(400).json({ error: 'date (YYYY-MM-DD) erforderlich' });
+  if (!Number.isInteger(mood) || mood < MOOD_MIN || mood > MOOD_MAX) {
+    return res.status(400).json({ error: `mood muss eine ganze Zahl von ${MOOD_MIN} bis ${MOOD_MAX} sein` });
+  }
+  if (!Array.isArray(activities) || activities.some((a) => typeof a !== 'string')) {
+    return res.status(400).json({ error: 'activities muss eine Liste von Strings sein' });
+  }
+  if (typeof notes !== 'string') return res.status(400).json({ error: 'notes muss ein String sein' });
+
+  const names = [...new Set(activities.map((a) => a.trim()).filter(Boolean))];
+  db.exec('BEGIN');
+  try {
+    db.prepare(
+      'INSERT INTO diary_entries (date, mood, notes) VALUES (?, ?, ?) ON CONFLICT(date) DO UPDATE SET mood = excluded.mood, notes = excluded.notes',
+    ).run(date, mood, notes.trim());
+    db.prepare('DELETE FROM diary_activities WHERE date = ?').run(date);
+    const insert = db.prepare('INSERT INTO diary_activities (date, activity) VALUES (?, ?)');
+    for (const a of names) insert.run(date, a);
+    db.exec('COMMIT');
+  } catch (err) {
+    db.exec('ROLLBACK');
+    throw err;
+  }
+  res.status(201).json(readDiary(date));
+});
+
+// Tagebuch: bisher verwendete Activities (für Vorschläge)
+app.get('/api/diary/activities', (req, res) => {
+  res.json(
+    db
+      .prepare('SELECT activity FROM diary_activities GROUP BY activity ORDER BY COUNT(*) DESC, activity')
+      .all()
+      .map((r) => r.activity),
+  );
+});
+
+// Tagebuch: Einträge eines Monats (ohne Eintrag fehlt der Tag)
+app.get('/api/diary/month/:month', (req, res) => {
+  const { month } = req.params;
+  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) {
+    return res.status(400).json({ error: 'month im Format YYYY-MM erforderlich' });
+  }
+  const dates = db.prepare('SELECT date FROM diary_entries WHERE date LIKE ? ORDER BY date').all(`${month}-%`);
+  res.json(dates.map((d) => readDiary(d.date)));
+});
+
+app.get('/api/diary/:date', (req, res) => {
+  const { date } = req.params;
+  if (!isDate(date)) return res.status(400).json({ error: 'date im Format YYYY-MM-DD erforderlich' });
+  const entry = readDiary(date);
+  if (!entry) return res.status(404).json({ error: 'Kein Eintrag für dieses Datum' });
+  res.json(entry);
+});
+
+app.delete('/api/diary/:date', (req, res) => {
+  const { date } = req.params;
+  if (!isDate(date)) return res.status(400).json({ error: 'date im Format YYYY-MM-DD erforderlich' });
+  db.prepare('DELETE FROM diary_entries WHERE date = ?').run(date); // Activities per CASCADE
+  res.json({ date, deleted: true });
+});
+
+
 // Serve static files from the React build
 app.use(express.static(path.join(__dirname, '../frontend/dist')));
 

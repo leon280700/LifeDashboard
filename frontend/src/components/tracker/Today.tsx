@@ -3,6 +3,7 @@ import { useGoalApi } from "../../api/useGoalApi";
 import { useTrackerApi } from "../../api/useTrackerApi";
 import Button from "../ui/Button";
 import Input from "../ui/Input";
+import ErrorBox from "../ui/ErrorBox";
 
 export default function Today({ onSaved }: { onSaved?: () => void }) {
   const [trackedToday, setTrackedToday] = useState(false);
@@ -34,8 +35,6 @@ export default function Today({ onSaved }: { onSaved?: () => void }) {
     const date = new Date().toLocaleDateString("sv");
     const removedEntry = await deleteTodaysEntry(date);
     if (removedEntry) {
-      setChecks({});
-      setNotes("");
       setTrackedToday(false);
       onSaved?.();
     }
@@ -94,7 +93,7 @@ export default function Today({ onSaved }: { onSaved?: () => void }) {
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
         />
-        {error && <p className="text-red-500">{error}</p>}
+        {error && <ErrorBox message={error} />}
         <Button type="submit" styleType="primary" text="Fertig" />
       </form>
     </div>

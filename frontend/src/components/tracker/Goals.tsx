@@ -7,6 +7,7 @@ import {
   type GoalForm,
 } from "../../types/tracker.types";
 import Input from "../ui/Input";
+import ErrorBox from "../ui/ErrorBox";
 
 const emptyForm = (): GoalForm =>
   Object.fromEntries(
@@ -85,7 +86,7 @@ export default function Goals({ onSaved }: { onSaved: () => void }) {
                 </div>
               ))}
             </div>
-            {error && <p className="text-red-500">{error}</p>}
+            {error && <ErrorBox message={error} />}
             <Button type="submit" styleType="primary" text="Speichern" />
           </form>
         </div>
