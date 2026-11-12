@@ -6,7 +6,8 @@ import { errorMessage, request } from "./http";
 export function useGoalApi() {
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [loadError, setLoadError] = useState("");
+  const [saveError, setSaveError] = useState("");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -15,10 +16,10 @@ export function useGoalApi() {
       .then((data) => {
         if (cancelled) return;
         setGoals(data);
-        setError("");
+        setLoadError("");
       })
       .catch(() => {
-        if (!cancelled) setError("Ziele konnten nicht geladen werden");
+        if (!cancelled) setLoadError("Ziele konnten nicht geladen werden");
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -29,18 +30,18 @@ export function useGoalApi() {
   }, []);
 
   const saveGoals = useCallback(async (list: GoalInput[]) => {
-    setError("");
+    setSaveError("");
     setSaving(true);
     try {
       setGoals(await request<Goal[]>("/api/goals", "PUT", { goals: list }));
       return true;
     } catch (e) {
-      setError(errorMessage(e, "Speichern fehlgeschlagen"));
+      setSaveError(errorMessage(e, "Speichern fehlgeschlagen"));
       return false;
     } finally {
       setSaving(false);
     }
   }, []);
 
-  return { goals, loading, error, saving, saveGoals };
+  return { goals, loading, loadError, saveError, saving, saveGoals };
 }

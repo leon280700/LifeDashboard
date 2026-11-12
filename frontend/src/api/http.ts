@@ -25,7 +25,8 @@ export async function request<T>(
         : `${method} ${url} fehlgeschlagen (${res.status})`;
     throw new HttpError(message, res.status);
   }
-  return res.json().catch(() => undefined as T);
+  if (res.status === 204) return undefined as T;
+  return res.json();
 }
 export const errorMessage = (e: unknown, fallback: string) =>
   e instanceof HttpError && e.status === 400 ? e.message : fallback;

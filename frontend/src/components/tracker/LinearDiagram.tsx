@@ -3,6 +3,7 @@ import ReactApexChart from "react-apexcharts";
 import type { ApexOptions } from "apexcharts";
 import { useMonthStatsApi } from "../../api/useMonthStatsApi";
 import Button from "../ui/Button";
+import ErrorBox from "../ui/ErrorBox";
 
 const escapeHtml = (s: string) =>
   s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
@@ -22,7 +23,7 @@ export default function LinearDiagram({
     year: now.getFullYear(),
     month: now.getMonth() + 1, // 1-12
   });
-  const { days, error } = useMonthStatsApi(view.year, view.month, refreshKey);
+  const { days, error, loading, retry } = useMonthStatsApi(view.year, view.month, refreshKey);
 
   const isCurrentMonth =
     view.year === now.getFullYear() && view.month === now.getMonth() + 1;
@@ -105,13 +106,31 @@ export default function LinearDiagram({
           disabled={isCurrentMonth}
         />
       </div>
-      {error && <p className="text-red-500">{error}</p>}
-      <ReactApexChart
-        options={options}
-        series={series}
-        type="line"
-        height={350}
-      />
+      {error && (
+        <div className="mt-2 flex items-center gap-3">
+          <ErrorBox message={error} />
+          <Button
+            type="button"
+            styleType="secondary"
+            text="Erneut versuchen"
+            onClick={retry}
+          />
+        </div>
+      )}
+      {!loading && !error && days.length === 0 && (
+        <p className="mt-2 text-white">Keine Einträge in diesem Monat.</p>
+      )}
+      <div
+        aria-busy={loading}
+        className={loading ? "opacity-50 transition-opacity" : undefined}
+      >
+        <ReactApexChart
+          options={options}
+          series={series}
+          type="line"
+          height={350}
+        />
+      </div>
     </div>
   );
 }

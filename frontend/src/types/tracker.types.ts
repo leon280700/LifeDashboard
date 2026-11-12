@@ -6,6 +6,8 @@ export const GoalTrackerCategories: string[] = [
   "career",
 ];
 
+export const MAX_GOAL_CONDITION = 200;
+
 export type Goal = {
   id: number;
   category: string;

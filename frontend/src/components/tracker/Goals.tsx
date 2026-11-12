@@ -5,6 +5,7 @@ import {
   type Goal,
   type GoalForm,
   type GoalInput,
+  MAX_GOAL_CONDITION,
 } from "../../types/tracker.types";
 import Input from "../ui/Input";
 import ErrorBox from "../ui/ErrorBox";
@@ -30,7 +31,9 @@ const formFromGoals = (goals: Goal[]): GoalForm => {
 
 type Props = {
   goals: Goal[];
-  error: string;
+  loading: boolean;
+  loadError: string;
+  saveError: string;
   saving: boolean;
   saveGoals: (list: GoalInput[]) => Promise<boolean>;
   onSaved: () => void;
@@ -38,7 +41,9 @@ type Props = {
 
 export default function Goals({
   goals,
-  error,
+  loading,
+  loadError,
+  saveError,
   saving,
   saveGoals,
   onSaved,
@@ -57,6 +62,7 @@ export default function Goals({
       .map(([category, v]) => ({ category, condition: v.condition }));
     if (await saveGoals(selected)) {
       setEdits(null);
+      setIsOpen(false);
       onSaved();
     }
   };
@@ -65,20 +71,24 @@ export default function Goals({
     <div className="mb-12 p-4 rounded border border-neutral-600 bg-neutral-700">
       <h2 className="mb-2 text-2xl font-medium">Ziele festlegen</h2>
 
+      {loadError && <ErrorBox message={loadError} />}
       <Button
         onClick={() => setIsOpen(!isOpen)}
         styleType="primary"
         text={isOpen ? "v" : ">"}
         type="button"
+        // Ohne geladene Ziele wäre das Formular leer und Speichern würde alle Ziele beenden
+        disabled={loading || !!loadError}
       />
 
-      {isOpen && (
+      {isOpen && !loading && !loadError && (
         <div className="mt-3">
           <form onSubmit={handleSubmit}>
             <div className="grid grid-cols-[auto_auto_1fr] items-center gap-x-4 gap-y-3">
               {categories.map((item) => (
                 <div key={item} className="contents">
                   <input
+                    id={`goal-${item}`}
                     type="checkbox"
                     name={item}
                     checked={form[item].selected}
@@ -89,11 +99,14 @@ export default function Goals({
                       })
                     }
                   />
-                  <label className="text-white">{item}</label>
+                  <label htmlFor={`goal-${item}`} className="text-white">
+                    {item}
+                  </label>
                   <Input
                     placeholder="Bedingungen..."
                     name={`${item}-notes`}
                     className="w-full"
+                    maxLength={MAX_GOAL_CONDITION}
                     value={form[item].condition}
                     onChange={(e) =>
                       setForm({
@@ -105,7 +118,7 @@ export default function Goals({
                 </div>
               ))}
             </div>
-            {error && <ErrorBox message={error} />}
+            {saveError && <ErrorBox message={saveError} />}
             <Button
               type="submit"
               styleType="primary"

@@ -14,7 +14,9 @@ export default function Tracker() {
       <Headline children="Tracker" />
       <Goals
         goals={goalApi.goals}
-        error={goalApi.error}
+        loading={goalApi.loading}
+        loadError={goalApi.loadError}
+        saveError={goalApi.saveError}
         saving={goalApi.saving}
         saveGoals={goalApi.saveGoals}
         onSaved={() => setEntryVersion((v) => v + 1)}
@@ -22,7 +24,7 @@ export default function Tracker() {
       <Today
         goals={goalApi.goals}
         goalsLoading={goalApi.loading}
-        goalsError={goalApi.error}
+        goalsError={goalApi.loadError}
         onSaved={() => setEntryVersion((v) => v + 1)}
       />
       <Graphs refreshKey={entryVersion} />
