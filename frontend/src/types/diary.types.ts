@@ -28,6 +28,7 @@ const activities_social = {
   concert: "Konzert/ Festival besucht",
   alcohol: "Alkohol getrunken",
   games_analog: "Brettspiele/ Kartenspiele gespielt",
+  present: "Geschenk gemacht",
 } as const;
 
 const activities_mental = {
@@ -46,6 +47,27 @@ export const activities = {
   ...activities_social,
   ...activities_mental,
   ...activities_everyday,
+} as const;
+
+export const symptoms_physical = {
+  muscle: "Muskelkater",
+  joint: "Gelenkschmerzen",
+  stiff: "Vermehrte Steifheit",
+  headache: "Kopfschmerzen",
+  throat_pain: "Halsschmerzen",
+  stomache: "Magenbeschwerden",
+  fit: "Müdigkeit",
+  heart: "Herzrasen",
+} as const;
+
+export const symptoms_mental = {
+  appreciated: "Wertgeschätzt gefühlt",
+  euphoric: "Euphorisch",
+  sad: "Traurig",
+  dizziness: "Schwindel",
+  dissociation: "Dissoziation",
+  social_battery: "Soziale Batterie ausgelaugt",
+  breath: "Atembeschwerden",
 } as const;
 
 export type ActivityCategoryKey = "physical" | "social" | "mental" | "everyday";
