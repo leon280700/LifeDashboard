@@ -163,8 +163,8 @@
     }
 }
 
-/* Hover-Tooltip im Befinden-Verlauf (MoodChart) passend zu den Karten */
-.mood-chart .apexcharts-tooltip.apexcharts-theme-dark {
+/* Hover-Tooltip der Liniendiagramme (MoodChart, TrackerChart) passend zu den Karten */
+.line-chart .apexcharts-tooltip.apexcharts-theme-dark {
   background: rgb(23 23 23 / 0.96);
   border: 1px solid rgb(64 64 64 / 0.8);
   border-radius: 0.75rem;

@@ -1,4 +1,4 @@
-import LinearDiagram from "./LinearDiagram";
+import LinearDiagram from "./TrackerChart";
 
 export default function Graphs({ refreshKey }: { refreshKey?: number }) {
   return (
