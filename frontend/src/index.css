@@ -7,6 +7,8 @@
 
 @theme inline {
     --animate-aurora: aurora 8s ease-in-out infinite alternate;
+    --animate-drift: drift 40s ease-in-out infinite alternate;
+    --animate-drift-reverse: drift 50s ease-in-out infinite alternate-reverse;
     --font-heading: var(--font-sans);
     --font-sans: 'Geist Variable', sans-serif;
     --color-sidebar-ring: var(--sidebar-ring);
@@ -47,6 +49,15 @@
     --radius-2xl: calc(var(--radius) * 1.8);
     --radius-3xl: calc(var(--radius) * 2.2);
     --radius-4xl: calc(var(--radius) * 2.6);
+  /* Langsames Wandern der Farbschleier im Seitenhintergrund (PageBackground) */
+  @keyframes drift {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+        }
+  100% {
+    transform: translate3d(6rem, 4rem, 0) scale(1.15);
+        }
+    }
   @keyframes aurora {
   0% {
     background-position: 0% 50%;
