@@ -1,8 +1,8 @@
+import ActivityTiles from "@/components/diary/ActivityTiles";
 import Button from "@/components/ui/Button";
 import ErrorBox from "@/components/ui/ErrorBox";
 import Input from "@/components/ui/Input";
 import {
-  activities,
   moods,
   type Activity,
   type DiaryFormValues,
@@ -63,19 +63,15 @@ export default function DiaryTodayFormular({
           {m}
         </label>
       ))}
-      {Object.entries(activities).map(([key, activity]) => (
-        <div key={key} className="flex items-center gap-2">
-          <input
-            id={key}
-            type="checkbox"
-            checked={selectedActivities.includes(activity)}
-            onChange={() => toggleActivity(activity)}
-          />
-          <label htmlFor={key} className="text-white">
-            {activity}
-          </label>
-        </div>
-      ))}
+      <h2 className="mt-8 mb-3 text-2xl font-medium text-white">
+        Aktivitäten
+      </h2>
+      <div className="mb-4">
+        <ActivityTiles
+          selected={selectedActivities}
+          onToggle={toggleActivity}
+        />
+      </div>
 
       <Input
         placeholder="Weitere Notizen..."

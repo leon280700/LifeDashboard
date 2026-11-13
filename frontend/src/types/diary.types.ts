@@ -25,12 +25,31 @@ const activities_mental = {
   project: "An persönlichem Projekt gearbeitet",
 } as const;
 
+const activities_everyday = {
+  kochen: "Etwas leckeres gekocht",
+} as const;
+
 export const activities = {
   ...activities_physical,
   ...activities_social,
   ...activities_mental,
-  kochen: "Leckeres gekocht",
+  ...activities_everyday,
 } as const;
+
+export type ActivityCategoryKey = "physical" | "social" | "mental" | "everyday";
+
+export type ActivityCategory = {
+  key: ActivityCategoryKey;
+  label: string;
+  activities: Partial<Record<ActivityKey, Activity>>;
+};
+
+export const activityCategories: ActivityCategory[] = [
+  { key: "physical", label: "Bewegung", activities: activities_physical },
+  { key: "social", label: "Soziales", activities: activities_social },
+  { key: "mental", label: "Geist & Freizeit", activities: activities_mental },
+  { key: "everyday", label: "Alltag", activities: activities_everyday },
+];
 
 export type ActivityKey = keyof typeof activities;
 export type Activity = (typeof activities)[ActivityKey];
