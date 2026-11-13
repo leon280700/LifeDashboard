@@ -1,21 +1,14 @@
 import useDiaryApi from "@/api/useDiaryApi";
-import ActivityTiles from "@/components/diary/ActivityTiles";
+import DiaryEntryView from "@/components/diary/DiaryEntryView";
 import DiaryTodayFormular from "@/components/diary/DiaryTodayFormular";
-import MoodPicker from "@/components/diary/MoodPicker";
-import TileCard from "@/components/diary/TileCard";
-import { cardAccents, sectionHeading } from "@/components/diary/accents";
+import MoodChart from "@/components/diary/MoodChart";
+import { sectionHeading } from "@/components/diary/accents";
 import Button from "@/components/ui/Button";
 import ErrorBox from "@/components/ui/ErrorBox";
 import Headline from "@/components/ui/Headline";
 import { today } from "@/helpers/dates";
-import {
-  isSymptomKey,
-  symptoms_mental,
-  symptoms_physical,
-  type DiaryEntry,
-  type DiaryFormValues,
-} from "@/types/diary.types";
-import { Brain, HeartPulse, PenLine, RotateCcw } from "lucide-react";
+import type { DiaryEntry, DiaryFormValues } from "@/types/diary.types";
+import { RotateCcw } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export default function Diary() {
@@ -25,6 +18,7 @@ export default function Diary() {
   const [entry, setEntry] = useState<DiaryEntry | null>(null);
   const [alreadySavedToday, setAlreadySavedToday] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [entryVersion, setEntryVersion] = useState(0);
   const { getDiaryEntry, saveDiaryEntry, deleteDiaryEntry, error, saving } =
     useDiaryApi();
 
@@ -33,11 +27,7 @@ export default function Diary() {
     getDiaryEntry(today()).then((loaded) => {
       if (cancelled) return;
       if (loaded) {
-        // Symptome, die es in diary.types.ts nicht (mehr) gibt, ignorieren
-        setEntry({
-          ...loaded,
-          symptoms: (loaded.symptoms ?? []).filter(isSymptomKey),
-        });
+        setEntry(loaded);
         setAlreadySavedToday(true);
       }
       setLoading(false);
@@ -52,11 +42,15 @@ export default function Diary() {
     if (await saveDiaryEntry(newEntry)) {
       setEntry(newEntry);
       setAlreadySavedToday(true);
+      setEntryVersion((v) => v + 1);
     }
   };
 
   const handleReset = async () => {
-    if (await deleteDiaryEntry(today())) setAlreadySavedToday(false);
+    if (await deleteDiaryEntry(today())) {
+      setAlreadySavedToday(false);
+      setEntryVersion((v) => v + 1);
+    }
   };
 
   if (loading) return null;
@@ -73,50 +67,11 @@ export default function Diary() {
     <div className="mx-auto mt-12 max-w-6xl px-4">
       <Headline children="Tagebuch" />
       {alreadySavedToday && entry ? (
-        <div className="mt-8 space-y-10 pb-12">
-          <div>
-            <h2 className={sectionHeading}>Befinden</h2>
-            <div className="grid gap-4 md:grid-cols-2">
-              <MoodPicker
-                title="Körperlich"
-                icon={HeartPulse}
-                accent={cardAccents.cyan}
-                name="saved-mood-physical"
-                value={entry.moodPhysical}
-                symptoms={symptoms_physical}
-                selectedSymptoms={entry.symptoms}
-              />
-              <MoodPicker
-                title="Psychisch"
-                icon={Brain}
-                accent={cardAccents.indigo}
-                name="saved-mood-mental"
-                value={entry.moodMental}
-                symptoms={symptoms_mental}
-                selectedSymptoms={entry.symptoms}
-              />
-            </div>
-          </div>
-
-          <div>
-            <h2 className={sectionHeading}>Heute gespeicherte Aktivitäten</h2>
-            <ActivityTiles selected={entry.activities} />
-          </div>
-
-          {entry.notes && (
-            <div>
-              <h2 className={sectionHeading}>Notizen</h2>
-              <TileCard
-                title="Weitere Anmerkungen?"
-                icon={PenLine}
-                accent={cardAccents.neutral}
-              >
-                <p className="leading-relaxed whitespace-pre-wrap text-neutral-200">
-                  {entry.notes}
-                </p>
-              </TileCard>
-            </div>
-          )}
+        <div className="mt-8 space-y-10">
+          <DiaryEntryView
+            entry={entry}
+            activitiesTitle="Heute gespeicherte Aktivitäten"
+          />
 
           <div className="flex flex-wrap items-center gap-4">
             <Button
@@ -138,6 +93,11 @@ export default function Diary() {
           onSubmit={handleSubmit}
         />
       )}
+
+      <section className="mt-12 pb-12">
+        <h2 className={sectionHeading}>Verlauf</h2>
+        <MoodChart refreshKey={entryVersion} />
+      </section>
     </div>
   );
 }

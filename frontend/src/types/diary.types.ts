@@ -58,6 +58,7 @@ export const symptoms_physical = {
   stomache: "Magenbeschwerden",
   fit: "Müdigkeit",
   heart: "Herzrasen",
+  sick: "Krank",
 } as const;
 
 export const symptoms_mental = {

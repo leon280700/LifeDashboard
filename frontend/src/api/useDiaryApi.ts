@@ -1,6 +1,7 @@
-import type { DiaryEntry } from "@/types/diary.types";
+import { type DiaryEntry } from "@/types/diary.types";
 import { useCallback, useState } from "react";
 import { HttpError, errorMessage, request } from "./http";
+import { normalizeDiaryEntry } from "@/helpers/diary.helpers";
 
 export default function useDiaryApi() {
   const [error, setError] = useState("");
@@ -9,7 +10,9 @@ export default function useDiaryApi() {
   const getDiaryEntry = useCallback(async (date: string) => {
     setError("");
     try {
-      return await request<DiaryEntry>(`/api/diary/${date}`);
+      return normalizeDiaryEntry(
+        await request<DiaryEntry>(`/api/diary/${date}`),
+      );
     } catch (e) {
       if (e instanceof HttpError && e.status === 404) return null;
       setError("Eintrag konnte nicht geladen werden");

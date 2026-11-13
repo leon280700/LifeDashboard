@@ -162,3 +162,12 @@
     @apply font-sans;
     }
 }
+
+/* Hover-Tooltip im Befinden-Verlauf (MoodChart) passend zu den Karten */
+.mood-chart .apexcharts-tooltip.apexcharts-theme-dark {
+  background: rgb(23 23 23 / 0.96);
+  border: 1px solid rgb(64 64 64 / 0.8);
+  border-radius: 0.75rem;
+  box-shadow: 0 20px 40px -12px rgb(0 0 0 / 0.6);
+  backdrop-filter: blur(8px);
+}

@@ -152,7 +152,7 @@ export default function DiaryTodayFormular({
         </TileCard>
       </div>
 
-      <div className="flex flex-wrap items-center gap-4 pb-12">
+      <div className="flex flex-wrap items-center gap-4">
         <Button
           type="submit"
           styleType="primary"
