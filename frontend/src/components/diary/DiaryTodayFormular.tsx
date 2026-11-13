@@ -7,8 +7,11 @@ import ErrorBox from "@/components/ui/ErrorBox";
 import Input from "@/components/ui/Input";
 import {
   MAX_NOTES,
+  symptoms_mental,
+  symptoms_physical,
   type DiaryFormValues,
   type Mood,
+  type SymptomKey,
 } from "@/types/diary.types";
 import { Brain, Check, HeartPulse, PenLine } from "lucide-react";
 import { useState, type SubmitEvent } from "react";
@@ -20,6 +23,7 @@ type Props = {
   onSubmit: (values: {
     moodPhysical: Mood;
     moodMental: Mood;
+    symptoms: SymptomKey[];
     activities: string[];
     notes: string;
   }) => void | Promise<void>;
@@ -33,6 +37,9 @@ export default function DiaryTodayFormular({
 }: Props) {
   const [moodPhysical, setMoodPhysical] = useState(initialValues.moodPhysical);
   const [moodMental, setMoodMental] = useState(initialValues.moodMental);
+  const [selectedSymptoms, setSelectedSymptoms] = useState(
+    initialValues.symptoms,
+  );
   const [selectedActivities, setSelectedActivities] = useState(
     initialValues.activities,
   );
@@ -44,6 +51,13 @@ export default function DiaryTodayFormular({
       prev.includes(activity)
         ? prev.filter((a) => a !== activity)
         : [...prev, activity],
+    );
+
+  const toggleSymptom = (symptom: SymptomKey) =>
+    setSelectedSymptoms((prev) =>
+      prev.includes(symptom)
+        ? prev.filter((s) => s !== symptom)
+        : [...prev, symptom],
     );
 
   const addCustomActivity = (activity: string) => {
@@ -66,6 +80,7 @@ export default function DiaryTodayFormular({
     onSubmit({
       moodPhysical,
       moodMental,
+      symptoms: selectedSymptoms,
       activities: selectedActivities,
       notes,
     });
@@ -85,6 +100,9 @@ export default function DiaryTodayFormular({
             name="mood-physical"
             value={moodPhysical}
             onChange={setMoodPhysical}
+            symptoms={symptoms_physical}
+            selectedSymptoms={selectedSymptoms}
+            onToggleSymptom={toggleSymptom}
           />
           <MoodPicker
             title="Psychisch"
@@ -93,6 +111,9 @@ export default function DiaryTodayFormular({
             name="mood-mental"
             value={moodMental}
             onChange={setMoodMental}
+            symptoms={symptoms_mental}
+            selectedSymptoms={selectedSymptoms}
+            onToggleSymptom={toggleSymptom}
           />
         </div>
       </div>
@@ -109,7 +130,7 @@ export default function DiaryTodayFormular({
       <div>
         <h2 className={sectionHeading}>Notizen</h2>
         <TileCard
-          title="Wie war dein Tag?"
+          title="Weitere Anmerkungen?"
           icon={PenLine}
           accent={cardAccents.neutral}
           aside={

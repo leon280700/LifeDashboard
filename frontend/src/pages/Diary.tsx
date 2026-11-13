@@ -8,7 +8,13 @@ import Button from "@/components/ui/Button";
 import ErrorBox from "@/components/ui/ErrorBox";
 import Headline from "@/components/ui/Headline";
 import { today } from "@/helpers/dates";
-import type { DiaryEntry, DiaryFormValues } from "@/types/diary.types";
+import {
+  isSymptomKey,
+  symptoms_mental,
+  symptoms_physical,
+  type DiaryEntry,
+  type DiaryFormValues,
+} from "@/types/diary.types";
 import { Brain, HeartPulse, PenLine, RotateCcw } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -27,7 +33,11 @@ export default function Diary() {
     getDiaryEntry(today()).then((loaded) => {
       if (cancelled) return;
       if (loaded) {
-        setEntry(loaded);
+        // Symptome, die es in diary.types.ts nicht (mehr) gibt, ignorieren
+        setEntry({
+          ...loaded,
+          symptoms: (loaded.symptoms ?? []).filter(isSymptomKey),
+        });
         setAlreadySavedToday(true);
       }
       setLoading(false);
@@ -54,6 +64,7 @@ export default function Diary() {
   const initialValues: DiaryFormValues = {
     moodPhysical: entry?.moodPhysical ?? null,
     moodMental: entry?.moodMental ?? null,
+    symptoms: entry?.symptoms ?? [],
     activities: entry?.activities ?? [],
     notes: entry?.notes ?? "",
   };
@@ -72,6 +83,8 @@ export default function Diary() {
                 accent={cardAccents.cyan}
                 name="saved-mood-physical"
                 value={entry.moodPhysical}
+                symptoms={symptoms_physical}
+                selectedSymptoms={entry.symptoms}
               />
               <MoodPicker
                 title="Psychisch"
@@ -79,6 +92,8 @@ export default function Diary() {
                 accent={cardAccents.indigo}
                 name="saved-mood-mental"
                 value={entry.moodMental}
+                symptoms={symptoms_mental}
+                selectedSymptoms={entry.symptoms}
               />
             </div>
           </div>
@@ -92,7 +107,7 @@ export default function Diary() {
             <div>
               <h2 className={sectionHeading}>Notizen</h2>
               <TileCard
-                title="Wie war dein Tag?"
+                title="Weitere Anmerkungen?"
                 icon={PenLine}
                 accent={cardAccents.neutral}
               >

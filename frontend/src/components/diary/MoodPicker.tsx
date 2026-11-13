@@ -1,41 +1,14 @@
-import { moodLabels, moods, type Mood } from "@/types/diary.types";
-import type { LucideIcon } from "lucide-react";
-import type { CardAccent } from "./accents";
+import {
+  moodLabels,
+  moods,
+  type Mood,
+  type SymptomKey,
+} from "@/types/diary.types";
+import { type LucideIcon } from "lucide-react";
+import type { ChipCardAccent } from "./accents";
 import TileCard, { TileBadge } from "./TileCard";
-
-// Mund je Stufe: 0 starkes Runzeln … 2 gerader Strich … 4 lachender, offener Mund
-const mouths: Record<Mood, string> = {
-  0: "M7.5 17 Q12 12 16.5 17",
-  1: "M8 16 Q12 13.5 16 16",
-  2: "M8 15.5 H16",
-  3: "M8 14.5 Q12 17.5 16 14.5",
-  4: "M7.5 13.5 H16.5 Q16.5 18.5 12 18.5 Q7.5 18.5 7.5 13.5 Z",
-};
-
-export function MoodFace({
-  mood,
-  className,
-}: {
-  mood: Mood;
-  className?: string;
-}) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={1.75}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden
-    >
-      <circle cx="12" cy="12" r="10" />
-      <path d="M9 9.5h.01M15 9.5h.01" strokeWidth={2.5} />
-      <path d={mouths[mood]} />
-    </svg>
-  );
-}
+import SymptomChips from "./SyptomChips";
+import { MoodFace } from "./MoodFace";
 
 // Farbe je Stufe, von Rot (0) bis Grün (4)
 const moodStyles: Record<Mood, { selected: string; badge: string }> = {
@@ -69,12 +42,16 @@ const moodStyles: Record<Mood, { selected: string; badge: string }> = {
 type Props = {
   title: string;
   icon: LucideIcon;
-  accent: CardAccent;
+  accent: ChipCardAccent;
   /** name der Radio-Gruppe, muss pro Seite eindeutig sein */
   name: string;
   value: Mood | null;
   /** Ohne onChange wird das Befinden nur angezeigt. */
   onChange?: (mood: Mood) => void;
+  /** Auswählbare Symptome dieser Karte (Key → Text), z. B. symptoms_physical */
+  symptoms: Partial<Record<SymptomKey, string>>;
+  selectedSymptoms: SymptomKey[];
+  onToggleSymptom?: (symptom: SymptomKey) => void;
 };
 
 export default function MoodPicker({
@@ -84,6 +61,9 @@ export default function MoodPicker({
   name,
   value,
   onChange,
+  symptoms,
+  selectedSymptoms,
+  onToggleSymptom,
 }: Props) {
   const readOnly = !onChange;
 
@@ -138,6 +118,14 @@ export default function MoodPicker({
           );
         })}
       </div>
+
+      <SymptomChips
+        title={title}
+        accent={accent}
+        symptoms={symptoms}
+        selected={selectedSymptoms}
+        onToggle={readOnly ? undefined : onToggleSymptom}
+      />
     </TileCard>
   );
 }

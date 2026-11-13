@@ -33,3 +33,9 @@ CREATE TABLE IF NOT EXISTS diary_activities (
   activity TEXT NOT NULL,
   PRIMARY KEY (date, activity)
 );
+
+CREATE TABLE IF NOT EXISTS diary_symptoms (
+  date    TEXT NOT NULL REFERENCES diary_entries(date) ON DELETE CASCADE,
+  symptom TEXT NOT NULL,
+  PRIMARY KEY (date, symptom)
+);

@@ -173,6 +173,8 @@ const MOOD_MAX = 4;
 const isMood = (m) => Number.isInteger(m) && m >= MOOD_MIN && m <= MOOD_MAX;
 const MAX_ACTIVITIES = 50;
 const MAX_ACTIVITY_LENGTH = 100;
+const MAX_SYMPTOMS = 50;
+const isSymptomKey = (s) => typeof s === 'string' && /^[a-z0-9_]{1,50}$/.test(s);
 
 const readDiary = (date) => {
   const entry = db
@@ -183,24 +185,35 @@ const readDiary = (date) => {
     .prepare('SELECT activity FROM diary_activities WHERE date = ? ORDER BY rowid')
     .all(date)
     .map((r) => r.activity);
+  const symptoms = db
+    .prepare('SELECT symptom FROM diary_symptoms WHERE date = ? ORDER BY rowid')
+    .all(date)
+    .map((r) => r.symptom);
   return {
     date,
     moodPhysical: entry.mood_physical,
     moodMental: entry.mood_mental,
+    symptoms,
     activities,
     notes: entry.notes,
   };
 };
 
 // Tagebuch: Eintrag speichern (legt an oder überschreibt den Tag)
-// Body: { date: "YYYY-MM-DD", moodPhysical: 0..4, moodMental: 0..4, activities?: string[], notes?: string }
+// Body: { date: "YYYY-MM-DD", moodPhysical: 0..4, moodMental: 0..4, symptoms?: string[],
+//         activities?: string[], notes?: string }
 app.put('/api/diary', (req, res) => {
-  const { date, moodPhysical, moodMental, activities = [], notes = '' } = req.body ?? {};
+  const { date, moodPhysical, moodMental, symptoms = [], activities = [], notes = '' } = req.body ?? {};
   if (!isDate(date)) return res.status(400).json({ error: 'date (YYYY-MM-DD) erforderlich' });
   if (!isMood(moodPhysical) || !isMood(moodMental)) {
     return res
       .status(400)
       .json({ error: `moodPhysical und moodMental müssen ganze Zahlen von ${MOOD_MIN} bis ${MOOD_MAX} sein` });
+  }
+  if (!Array.isArray(symptoms) || symptoms.length > MAX_SYMPTOMS || !symptoms.every(isSymptomKey)) {
+    return res
+      .status(400)
+      .json({ error: `symptoms muss eine Liste von höchstens ${MAX_SYMPTOMS} Keys (a-z, 0-9, _) sein` });
   }
   if (!Array.isArray(activities) || activities.some((a) => typeof a !== 'string')) {
     return res.status(400).json({ error: 'activities muss eine Liste von Strings sein' });
@@ -227,6 +240,9 @@ app.put('/api/diary', (req, res) => {
     db.prepare('DELETE FROM diary_activities WHERE date = ?').run(date);
     const insert = db.prepare('INSERT INTO diary_activities (date, activity) VALUES (?, ?)');
     for (const a of names) insert.run(date, a);
+    db.prepare('DELETE FROM diary_symptoms WHERE date = ?').run(date);
+    const insertSymptom = db.prepare('INSERT INTO diary_symptoms (date, symptom) VALUES (?, ?)');
+    for (const s of new Set(symptoms)) insertSymptom.run(date, s);
     db.exec('COMMIT');
   } catch (err) {
     db.exec('ROLLBACK');
@@ -266,7 +282,7 @@ app.get('/api/diary/:date', (req, res) => {
 app.delete('/api/diary/:date', (req, res) => {
   const { date } = req.params;
   if (!isDate(date)) return res.status(400).json({ error: 'date im Format YYYY-MM-DD erforderlich' });
-  db.prepare('DELETE FROM diary_entries WHERE date = ?').run(date); // Activities per CASCADE
+  db.prepare('DELETE FROM diary_entries WHERE date = ?').run(date); // Activities und Symptome per CASCADE
   res.json({ date, deleted: true });
 });
 

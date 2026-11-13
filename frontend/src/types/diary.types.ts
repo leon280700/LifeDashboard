@@ -70,6 +70,14 @@ export const symptoms_mental = {
   breath: "Atembeschwerden",
 } as const;
 
+export const symptoms = { ...symptoms_physical, ...symptoms_mental } as const;
+export type SymptomKey = keyof typeof symptoms;
+
+// Gespeichert werden die Keys (z. B. "headache"), damit Umbenennungen der Texte alte Einträge nicht verändern.
+// Unbekannte Keys (z. B. gelöschte Symptome) werden beim Laden ignoriert.
+export const isSymptomKey = (key: string): key is SymptomKey =>
+  Object.hasOwn(symptoms, key);
+
 export type ActivityCategoryKey = "physical" | "social" | "mental" | "everyday";
 
 export type ActivityCategory = {
@@ -99,6 +107,7 @@ export type DiaryEntry = {
   // null bei alten Einträgen, die nur eine Stimmung hatten
   moodPhysical: Mood | null;
   moodMental: Mood;
+  symptoms: SymptomKey[];
   activities: string[];
   notes: string;
 };
@@ -106,6 +115,7 @@ export type DiaryEntry = {
 export type DiaryFormValues = {
   moodPhysical: Mood | null;
   moodMental: Mood | null;
+  symptoms: SymptomKey[];
   activities: string[];
   notes: string;
 };

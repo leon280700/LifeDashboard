@@ -4,6 +4,10 @@ export type CardAccent = {
   badge: string;
 };
 
+export type ChipCardAccent = CardAccent & {
+  chip: string;
+};
+
 export type TileAccent = CardAccent & {
   selected: string;
   hover: string;
@@ -15,18 +19,21 @@ export const cardAccents = {
     card: "from-cyan-500/10",
     iconBox: "bg-cyan-500/15 text-cyan-300 ring-cyan-400/30",
     badge: "bg-cyan-500/15 text-cyan-300",
+    chip: "border-cyan-400/60 bg-cyan-500/15 text-cyan-100",
   },
   indigo: {
     card: "from-indigo-500/10",
     iconBox: "bg-indigo-500/15 text-indigo-300 ring-indigo-400/30",
     badge: "bg-indigo-500/15 text-indigo-300",
+    chip: "border-indigo-400/60 bg-indigo-500/15 text-indigo-100",
   },
   neutral: {
     card: "from-neutral-500/10",
     iconBox: "bg-neutral-500/15 text-neutral-300 ring-neutral-400/30",
     badge: "bg-neutral-500/15 text-neutral-300",
+    chip: "border-neutral-400/60 bg-neutral-500/15 text-neutral-100",
   },
-} satisfies Record<string, CardAccent>;
+} satisfies Record<string, ChipCardAccent>;
 
 export const tileAccents = {
   emerald: {
