@@ -167,29 +167,40 @@ app.delete('/api/tracker/:date', (req, res) => {
 });
 
 
-// Tagebuch: Mood-Wertebereich (hier anpassen, wenn erweitert werden soll)
+// Tagebuch: Wertebereich des Befindens (hier anpassen, wenn erweitert werden soll)
 const MOOD_MIN = 0;
 const MOOD_MAX = 4;
+const isMood = (m) => Number.isInteger(m) && m >= MOOD_MIN && m <= MOOD_MAX;
 const MAX_ACTIVITIES = 50;
 const MAX_ACTIVITY_LENGTH = 100;
 
 const readDiary = (date) => {
-  const entry = db.prepare('SELECT mood, notes FROM diary_entries WHERE date = ?').get(date);
+  const entry = db
+    .prepare('SELECT mood_physical, mood_mental, notes FROM diary_entries WHERE date = ?')
+    .get(date);
   if (!entry) return null;
   const activities = db
     .prepare('SELECT activity FROM diary_activities WHERE date = ? ORDER BY rowid')
     .all(date)
     .map((r) => r.activity);
-  return { date, mood: entry.mood, activities, notes: entry.notes };
+  return {
+    date,
+    moodPhysical: entry.mood_physical,
+    moodMental: entry.mood_mental,
+    activities,
+    notes: entry.notes,
+  };
 };
 
 // Tagebuch: Eintrag speichern (legt an oder überschreibt den Tag)
-// Body: { date: "YYYY-MM-DD", mood: 0..4, activities?: string[], notes?: string }
+// Body: { date: "YYYY-MM-DD", moodPhysical: 0..4, moodMental: 0..4, activities?: string[], notes?: string }
 app.put('/api/diary', (req, res) => {
-  const { date, mood, activities = [], notes = '' } = req.body ?? {};
+  const { date, moodPhysical, moodMental, activities = [], notes = '' } = req.body ?? {};
   if (!isDate(date)) return res.status(400).json({ error: 'date (YYYY-MM-DD) erforderlich' });
-  if (!Number.isInteger(mood) || mood < MOOD_MIN || mood > MOOD_MAX) {
-    return res.status(400).json({ error: `mood muss eine ganze Zahl von ${MOOD_MIN} bis ${MOOD_MAX} sein` });
+  if (!isMood(moodPhysical) || !isMood(moodMental)) {
+    return res
+      .status(400)
+      .json({ error: `moodPhysical und moodMental müssen ganze Zahlen von ${MOOD_MIN} bis ${MOOD_MAX} sein` });
   }
   if (!Array.isArray(activities) || activities.some((a) => typeof a !== 'string')) {
     return res.status(400).json({ error: 'activities muss eine Liste von Strings sein' });
@@ -209,8 +220,10 @@ app.put('/api/diary', (req, res) => {
   db.exec('BEGIN');
   try {
     db.prepare(
-      'INSERT INTO diary_entries (date, mood, notes) VALUES (?, ?, ?) ON CONFLICT(date) DO UPDATE SET mood = excluded.mood, notes = excluded.notes',
-    ).run(date, mood, notes.trim());
+      `INSERT INTO diary_entries (date, mood_physical, mood_mental, notes) VALUES (?, ?, ?, ?)
+       ON CONFLICT(date) DO UPDATE SET
+         mood_physical = excluded.mood_physical, mood_mental = excluded.mood_mental, notes = excluded.notes`,
+    ).run(date, moodPhysical, moodMental, notes.trim());
     db.prepare('DELETE FROM diary_activities WHERE date = ?').run(date);
     const insert = db.prepare('INSERT INTO diary_activities (date, activity) VALUES (?, ?)');
     for (const a of names) insert.run(date, a);

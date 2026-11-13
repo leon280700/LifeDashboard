@@ -1,22 +1,21 @@
 import useDiaryApi from "@/api/useDiaryApi";
 import ActivityTiles from "@/components/diary/ActivityTiles";
 import DiaryTodayFormular from "@/components/diary/DiaryTodayFormular";
+import MoodPicker from "@/components/diary/MoodPicker";
+import TileCard from "@/components/diary/TileCard";
+import { cardAccents, sectionHeading } from "@/components/diary/accents";
 import Button from "@/components/ui/Button";
 import ErrorBox from "@/components/ui/ErrorBox";
 import Headline from "@/components/ui/Headline";
 import { today } from "@/helpers/dates";
-import {
-  activities,
-  type Activity,
-  type DiaryEntry,
-  type DiaryFormValues,
-} from "@/types/diary.types";
+import type { DiaryEntry, DiaryFormValues } from "@/types/diary.types";
+import { Brain, HeartPulse, PenLine, RotateCcw } from "lucide-react";
 import { useEffect, useState } from "react";
 
-const knownActivities = Object.values(activities) as Activity[];
-
 export default function Diary() {
-  // Zuletzt geladener/gespeicherter Eintrag; dient als Startwert des Formulars
+  // Zuletzt geladener/gespeicherter Eintrag; dient als Startwert des Formulars.
+  // Es wird nur der heutige Eintrag geladen, daher startet jeder neue Tag mit den
+  // Default-Aktivitäten (eigene Aktivitäten unter "Sonstige" gelten nur für ihren Tag).
   const [entry, setEntry] = useState<DiaryEntry | null>(null);
   const [alreadySavedToday, setAlreadySavedToday] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -28,12 +27,7 @@ export default function Diary() {
     getDiaryEntry(today()).then((loaded) => {
       if (cancelled) return;
       if (loaded) {
-        setEntry({
-          ...loaded,
-          activities: loaded.activities.filter((a) =>
-            knownActivities.includes(a),
-          ),
-        });
+        setEntry(loaded);
         setAlreadySavedToday(true);
       }
       setLoading(false);
@@ -58,7 +52,8 @@ export default function Diary() {
   if (loading) return null;
 
   const initialValues: DiaryFormValues = {
-    mood: entry?.mood ?? null,
+    moodPhysical: entry?.moodPhysical ?? null,
+    moodMental: entry?.moodMental ?? null,
     activities: entry?.activities ?? [],
     notes: entry?.notes ?? "",
   };
@@ -66,20 +61,60 @@ export default function Diary() {
   return (
     <div className="mx-auto mt-12 max-w-6xl px-4">
       <Headline children="Tagebuch" />
-      {alreadySavedToday ? (
-        <>
-          <h2 className="mt-8 mb-3 text-2xl font-medium text-white">
-            Heute gespeicherte Aktivitäten
-          </h2>
-          <ActivityTiles selected={entry?.activities ?? []} />
-          <Button
-            type="button"
-            styleType="primary"
-            text="Zurücksetzen"
-            onClick={handleReset}
-          />
-          {error && <ErrorBox message={error} />}
-        </>
+      {alreadySavedToday && entry ? (
+        <div className="mt-8 space-y-10 pb-12">
+          <div>
+            <h2 className={sectionHeading}>Befinden</h2>
+            <div className="grid gap-4 md:grid-cols-2">
+              <MoodPicker
+                title="Körperlich"
+                icon={HeartPulse}
+                accent={cardAccents.cyan}
+                name="saved-mood-physical"
+                value={entry.moodPhysical}
+              />
+              <MoodPicker
+                title="Psychisch"
+                icon={Brain}
+                accent={cardAccents.indigo}
+                name="saved-mood-mental"
+                value={entry.moodMental}
+              />
+            </div>
+          </div>
+
+          <div>
+            <h2 className={sectionHeading}>Heute gespeicherte Aktivitäten</h2>
+            <ActivityTiles selected={entry.activities} />
+          </div>
+
+          {entry.notes && (
+            <div>
+              <h2 className={sectionHeading}>Notizen</h2>
+              <TileCard
+                title="Wie war dein Tag?"
+                icon={PenLine}
+                accent={cardAccents.neutral}
+              >
+                <p className="leading-relaxed whitespace-pre-wrap text-neutral-200">
+                  {entry.notes}
+                </p>
+              </TileCard>
+            </div>
+          )}
+
+          <div className="flex flex-wrap items-center gap-4">
+            <Button
+              type="button"
+              styleType="secondary"
+              text="Zurücksetzen"
+              icon={RotateCcw}
+              onClick={handleReset}
+              className=""
+            />
+            {error && <ErrorBox message={error} />}
+          </div>
+        </div>
       ) : (
         <DiaryTodayFormular
           initialValues={initialValues}

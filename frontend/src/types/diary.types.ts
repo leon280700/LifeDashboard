@@ -1,4 +1,16 @@
-export const moods = [0, 1, 2, 3, 4];
+export const moods = [0, 1, 2, 3, 4] as const;
+export type Mood = (typeof moods)[number];
+export const moodLabels: Record<Mood, string> = {
+  0: "Sehr schlecht",
+  1: "Schlecht",
+  2: "Neutral",
+  3: "Gut",
+  4: "Sehr gut",
+};
+
+// Grenzen wie im Backend (server.js)
+export const MAX_NOTES = 2000;
+export const MAX_ACTIVITY_LENGTH = 100;
 
 const activities_physical = {
   skate: "Skaten gewesen",
@@ -54,15 +66,24 @@ export const activityCategories: ActivityCategory[] = [
 export type ActivityKey = keyof typeof activities;
 export type Activity = (typeof activities)[ActivityKey];
 
+const defaultActivities: string[] = Object.values(activities);
+
+// Alles, was keine Default-Aktivität ist, wurde für den Tag selbst hinzugefügt ("Sonstige")
+export const isDefaultActivity = (activity: string): activity is Activity =>
+  defaultActivities.includes(activity);
+
 export type DiaryEntry = {
   date: string;
-  mood: number;
-  activities: Activity[];
+  // null bei alten Einträgen, die nur eine Stimmung hatten
+  moodPhysical: Mood | null;
+  moodMental: Mood;
+  activities: string[];
   notes: string;
 };
 
 export type DiaryFormValues = {
-  mood: number | null;
-  activities: Activity[];
+  moodPhysical: Mood | null;
+  moodMental: Mood | null;
+  activities: string[];
   notes: string;
 };

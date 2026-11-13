@@ -1,5 +1,3 @@
--- Jede Zieländerung erzeugt eine neue Zeile (Versionierung).
--- Aktuell gültig: active_to IS NULL.
 CREATE TABLE IF NOT EXISTS goals (
   id          INTEGER PRIMARY KEY,
   category    TEXT NOT NULL,
@@ -8,7 +6,6 @@ CREATE TABLE IF NOT EXISTS goals (
   active_to   TEXT                    -- NULL = noch aktiv
 );
 
--- Pro Kategorie darf nur ein aktives Ziel existieren
 CREATE UNIQUE INDEX IF NOT EXISTS idx_goals_one_active
   ON goals(category) WHERE active_to IS NULL;
 
@@ -24,12 +21,11 @@ CREATE TABLE IF NOT EXISTS day_notes (
   notes TEXT NOT NULL DEFAULT ''
 );
 
--- Tagebuch: ein Eintrag pro Tag. Der Wertebereich der Mood wird bewusst
--- nur im Server geprüft (MOOD_MIN/MOOD_MAX in server.js), damit er sich ohne Migration erweitern lässt.
 CREATE TABLE IF NOT EXISTS diary_entries (
-  date  TEXT PRIMARY KEY,             -- YYYY-MM-DD
-  mood  INTEGER NOT NULL,
-  notes TEXT NOT NULL DEFAULT ''
+  date          TEXT PRIMARY KEY,     -- YYYY-MM-DD
+  mood_physical INTEGER NOT NULL,
+  mood_mental   INTEGER NOT NULL,
+  notes         TEXT NOT NULL DEFAULT ''
 );
 
 CREATE TABLE IF NOT EXISTS diary_activities (
