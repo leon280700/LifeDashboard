@@ -30,13 +30,14 @@ export default function Goals({
     <div className="mt-8 flex flex-wrap items-center gap-4">
       <Button
         onClick={() => setIsOpen(true)}
-        styleType="secondary"
+        styleType="primary"
         text="Ziele festlegen"
         icon={Target}
         type="button"
         className=""
         disabled={loading || !!loadError}
       />
+
       {loadError && <ErrorBox message={loadError} />}
 
       {isOpen && !loading && !loadError && (
@@ -48,6 +49,7 @@ export default function Goals({
           onSaved={onSaved}
           onClose={() => setIsOpen(false)}
           loading={false}
+          loadError={loadError}
         />
       )}
     </div>

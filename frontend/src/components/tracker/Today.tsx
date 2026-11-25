@@ -3,9 +3,9 @@ import { useTrackerApi } from "../../api/useTrackerApi";
 import { today } from "../../helpers/dates";
 import type { Goal } from "../../types/tracker.types";
 import Button from "../ui/Button";
-import Input from "../ui/Input";
+import NotesCard from "../ui/NotesCard";
 import ErrorBox from "../ui/ErrorBox";
-import { Check, ListChecks, PenLine, RotateCcw } from "lucide-react";
+import { Check, ListChecks, RotateCcw } from "lucide-react";
 import type { ReactNode } from "react";
 import TileCard, { TileBadge } from "../diary/TileCard";
 import {
@@ -105,7 +105,7 @@ export default function Today({
   const doneCount = goals.filter((g) => checks[g.id]).length;
 
   return section(
-    <form className="space-y-6" onSubmit={handleSubmit}>
+    <form className="space-y-10" onSubmit={handleSubmit}>
       <TileCard
         title="Ziele"
         icon={ListChecks}
@@ -153,22 +153,7 @@ export default function Today({
         </div>
       </TileCard>
 
-      <TileCard
-        title="Notizen"
-        icon={PenLine}
-        accent={cardAccents.neutral}
-      >
-        <Input
-          multiline
-          rows={3}
-          aria-label="Notizen"
-          placeholder="Zusätzliche Notizen"
-          name="notes"
-          value={notes}
-          className="w-full"
-          onChange={(e) => setNotes(e.target.value)}
-        />
-      </TileCard>
+      <NotesCard notes={notes} setNotes={setNotes} />
 
       <div className="flex flex-wrap items-center gap-4">
         <Button

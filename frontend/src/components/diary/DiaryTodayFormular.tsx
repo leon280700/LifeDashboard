@@ -1,19 +1,17 @@
 import ActivityTiles from "@/components/diary/ActivityTiles";
 import MoodPicker from "@/components/diary/MoodPicker";
-import TileCard, { TileBadge } from "@/components/diary/TileCard";
 import { cardAccents, sectionHeading } from "@/components/diary/accents";
 import Button from "@/components/ui/Button";
+import NotesCard from "@/components/ui/NotesCard";
 import ErrorBox from "@/components/ui/ErrorBox";
-import Input from "@/components/ui/Input";
 import {
-  MAX_NOTES,
   symptoms_mental,
   symptoms_physical,
   type DiaryFormValues,
   type Mood,
   type SymptomKey,
 } from "@/types/diary.types";
-import { Brain, Check, HeartPulse, PenLine } from "lucide-react";
+import { Brain, Check, HeartPulse } from "lucide-react";
 import { useState, type SubmitEvent } from "react";
 
 type Props = {
@@ -127,30 +125,7 @@ export default function DiaryTodayFormular({
         />
       </div>
 
-      <div>
-        <h2 className={sectionHeading}>Notizen</h2>
-        <TileCard
-          title="Weitere Anmerkungen?"
-          icon={PenLine}
-          accent={cardAccents.neutral}
-          aside={
-            <TileBadge className={cardAccents.neutral.badge}>
-              {notes.length}/{MAX_NOTES}
-            </TileBadge>
-          }
-        >
-          <Input
-            multiline
-            rows={5}
-            aria-label="Notizen"
-            placeholder="Was ist heute passiert, was hat dich beschäftigt?"
-            value={notes}
-            maxLength={MAX_NOTES}
-            className="w-full"
-            onChange={(e) => setNotes(e.target.value)}
-          />
-        </TileCard>
-      </div>
+      <NotesCard notes={notes} setNotes={setNotes} />
 
       <div className="flex flex-wrap items-center gap-4">
         <Button

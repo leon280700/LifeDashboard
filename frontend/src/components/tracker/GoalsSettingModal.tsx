@@ -12,6 +12,7 @@ import ErrorBox from "../ui/ErrorBox";
 import Input from "../ui/Input";
 import Modal from "../ui/Modal";
 import { useState } from "react";
+import { formatLongDate } from "@/helpers/dates";
 
 // Bekannte Kategorien plus aktive Ziele, die nicht (mehr) in der Liste stehen,
 // damit sie beim Speichern nicht unbemerkt beendet werden.
@@ -37,6 +38,7 @@ type Props = {
   loading: boolean;
   saveError: string;
   saving: boolean;
+  loadError: string;
   saveGoals: (list: GoalInput[]) => Promise<boolean>;
   onSaved: () => void;
   onClose: () => void;
@@ -47,6 +49,7 @@ export default function GoalsSettingModal({
   saveGoals,
   saveError,
   saving,
+  loadError,
   onSaved,
   onClose,
 }: Props) {
@@ -55,6 +58,12 @@ export default function GoalsSettingModal({
   const categories = categoriesFor(goals);
   const form: GoalForm = edits ?? formFromGoals(goals);
   const setForm = setEdits;
+
+  // Unveränderte Ziele behalten ihr Datum, das jüngste ist also die letzte Änderung
+  const activeSince = goals.reduce(
+    (latest, g) => (g.activeFrom > latest ? g.activeFrom : latest),
+    "",
+  );
 
   const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -119,6 +128,11 @@ export default function GoalsSettingModal({
           />
           {saveError && <ErrorBox message={saveError} />}
         </div>
+        {activeSince && !loadError && (
+          <p className="pt-4 text-sm text-neutral-400">
+            Letzte Änderung am {formatLongDate(activeSince)}
+          </p>
+        )}
       </form>
     </Modal>
   );
