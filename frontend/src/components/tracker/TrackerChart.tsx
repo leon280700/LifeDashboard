@@ -81,7 +81,7 @@ export default function LinearDiagram({
   });
 
   return (
-    <div className="mb-12">
+    <div>
       <TileCard
         title={formatMonth(year, month) + " – Habit Tracker"}
         icon={ChartLine}

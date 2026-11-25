@@ -10,6 +10,9 @@ cd backend
 npm run dev
 ```
 
+# LifeDashboard aufrufen
+http://localhost:5173/
+
 # Datenbank in Terminal
 Mit DB Verbinden:
 `sqlite3 -header -column backend/data/dashboard.db`

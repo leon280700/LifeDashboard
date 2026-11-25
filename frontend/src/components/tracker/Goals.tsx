@@ -9,6 +9,9 @@ import {
 } from "../../types/tracker.types";
 import Input from "../ui/Input";
 import ErrorBox from "../ui/ErrorBox";
+import Modal from "../ui/Modal";
+import { Check, Target } from "lucide-react";
+import Chip from "../ui/Chip";
 
 // Bekannte Kategorien plus aktive Ziele, die nicht (mehr) in der Liste stehen,
 // damit sie beim Speichern nicht unbemerkt beendet werden.
@@ -67,47 +70,51 @@ export default function Goals({
     }
   };
 
-  return (
-    <div className="mb-12 p-4 rounded border border-neutral-600 bg-neutral-700">
-      <h2 className="mb-2 text-2xl font-medium">Ziele festlegen</h2>
+  const close = () => {
+    setEdits(null);
+    setIsOpen(false);
+  };
 
-      {loadError && <ErrorBox message={loadError} />}
+  return (
+    <div className="mt-8 flex flex-wrap items-center gap-4">
       <Button
-        onClick={() => setIsOpen(!isOpen)}
-        styleType="primary"
-        text={isOpen ? "v" : ">"}
+        onClick={() => setIsOpen(true)}
+        styleType="secondary"
+        text="Ziele festlegen"
+        icon={Target}
         type="button"
+        className=""
         // Ohne geladene Ziele wäre das Formular leer und Speichern würde alle Ziele beenden
         disabled={loading || !!loadError}
       />
+      {loadError && <ErrorBox message={loadError} />}
 
       {isOpen && !loading && !loadError && (
-        <div className="mt-3">
+        <Modal title="Ziele festlegen" onClose={close}>
           <form onSubmit={handleSubmit}>
-            <div className="grid grid-cols-[auto_auto_1fr] items-center gap-x-4 gap-y-3">
+            <div className="grid grid-cols-[auto_1fr] items-center gap-x-5 gap-y-3">
               {categories.map((item) => (
                 <div key={item} className="contents">
-                  <input
-                    id={`goal-${item}`}
-                    type="checkbox"
-                    name={item}
-                    checked={form[item].selected}
-                    onChange={(e) =>
+                  <Chip
+                    text={item}
+                    selected={form[item].selected}
+                    onClick={() =>
                       setForm({
                         ...form,
-                        [item]: { ...form[item], selected: e.target.checked },
+                        [item]: {
+                          ...form[item],
+                          selected: !form[item].selected,
+                        },
                       })
                     }
                   />
-                  <label htmlFor={`goal-${item}`} className="text-white">
-                    {item}
-                  </label>
                   <Input
                     placeholder="Bedingungen..."
                     name={`${item}-notes`}
                     className="w-full"
                     maxLength={MAX_GOAL_CONDITION}
                     value={form[item].condition}
+                    disabled={!form[item].selected}
                     onChange={(e) =>
                       setForm({
                         ...form,
@@ -118,15 +125,19 @@ export default function Goals({
                 </div>
               ))}
             </div>
-            {saveError && <ErrorBox message={saveError} />}
-            <Button
-              type="submit"
-              styleType="primary"
-              text="Speichern"
-              disabled={saving}
-            />
+            <div className="mt-6 flex flex-wrap items-center gap-4">
+              <Button
+                type="submit"
+                styleType="primary"
+                text={saving ? "Speichert…" : "Speichern"}
+                icon={Check}
+                disabled={saving}
+                className=""
+              />
+              {saveError && <ErrorBox message={saveError} />}
+            </div>
           </form>
-        </div>
+        </Modal>
       )}
     </div>
   );

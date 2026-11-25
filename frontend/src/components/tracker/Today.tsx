@@ -5,6 +5,15 @@ import type { Goal } from "../../types/tracker.types";
 import Button from "../ui/Button";
 import Input from "../ui/Input";
 import ErrorBox from "../ui/ErrorBox";
+import { Check, ListChecks, PenLine, RotateCcw } from "lucide-react";
+import type { ReactNode } from "react";
+import TileCard, { TileBadge } from "../diary/TileCard";
+import {
+  cardAccents,
+  sectionHeading,
+  tileAccents,
+  tileBase,
+} from "../diary/accents";
 
 type Props = {
   goals: Goal[];
@@ -60,72 +69,118 @@ export default function Today({
     }
   };
 
-  const box = "p-4 rounded border border-neutral-600 bg-neutral-700";
+  const accent = tileAccents.emerald;
 
-  if (loading || goalsLoading) return <div className={box} aria-busy="true" />;
+  const section = (children: ReactNode) => (
+    <section className="mt-8">
+      <h2 className={sectionHeading}>Heute</h2>
+      {children}
+    </section>
+  );
+
+  if (loading || goalsLoading)
+    return section(<div aria-busy="true" className="h-24" />);
 
   if (loadFailed) {
-    return (
-      <div className={box}>
-        <ErrorBox message={shownError} />
-      </div>
-    );
+    return section(<ErrorBox message={shownError} />);
   }
 
   if (trackedToday) {
-    return (
-      <div className={box}>
-        <p className="text-white">Heute getrackt</p>
+    return section(
+      <div className="flex flex-wrap items-center gap-4">
+        <p className="text-white">Heute getrackt!</p>
         <Button
           type="button"
-          styleType="primary"
+          styleType="secondary"
           text="Zurücksetzen"
+          icon={RotateCcw}
           onClick={handleReset}
+          className=""
         />
         {shownError && <ErrorBox message={shownError} />}
-      </div>
+      </div>,
     );
   }
 
-  return (
-    <div className={box}>
-      <h2 className="mb-2 text-2xl font-medium">Heute</h2>
-      <form onSubmit={handleSubmit}>
+  const doneCount = goals.filter((g) => checks[g.id]).length;
+
+  return section(
+    <form className="space-y-6" onSubmit={handleSubmit}>
+      <TileCard
+        title="Ziele"
+        icon={ListChecks}
+        accent={cardAccents.cyan}
+        aside={
+          goals.length > 0 && (
+            <TileBadge className={cardAccents.cyan.badge}>
+              {doneCount}/{goals.length}
+            </TileBadge>
+          )
+        }
+      >
         {goals.length === 0 && (
-          <p className="text-white">Noch keine Ziele festgelegt.</p>
+          <p className="text-neutral-400">Noch keine Ziele festgelegt.</p>
         )}
-        <div className="grid grid-cols-[auto_1fr] items-center gap-x-4 gap-y-3">
-          {goals.map((goal) => (
-            <div key={goal.id} className="contents">
-              <input
-                id={`goal-${goal.id}`}
-                type="checkbox"
-                checked={checks[goal.id] ?? false}
-                onChange={(e) =>
-                  setChecks({ ...checks, [goal.id]: e.target.checked })
-                }
-              />
-              <label htmlFor={`goal-${goal.id}`} className="mr-2 text-white">
-                {goal.category}
-                {goal.condition && ` (${goal.condition})`}
-              </label>
-            </div>
-          ))}
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {goals.map((goal) => {
+            const checked = checks[goal.id] ?? false;
+            return (
+              <button
+                key={goal.id}
+                type="button"
+                aria-pressed={checked}
+                onClick={() => setChecks({ ...checks, [goal.id]: !checked })}
+                className={`${tileBase} min-h-20 cursor-pointer justify-between gap-2 transition duration-150 outline-none focus-visible:ring-4 focus-visible:ring-white/20 ${
+                  checked
+                    ? accent.selected
+                    : `border-neutral-700 bg-neutral-800/60 text-neutral-200 ${accent.hover}`
+                }`}
+              >
+                <span className="font-medium">{goal.category}</span>
+                {goal.condition && (
+                  <span className="text-neutral-400">{goal.condition}</span>
+                )}
+                {checked && (
+                  <span
+                    className={`absolute top-2 right-2 flex size-5 items-center justify-center rounded-full ${accent.check}`}
+                  >
+                    <Check className="size-3.5" aria-hidden />
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
+      </TileCard>
+
+      <TileCard
+        title="Notizen"
+        icon={PenLine}
+        accent={cardAccents.neutral}
+      >
         <Input
+          multiline
+          rows={3}
+          aria-label="Notizen"
           placeholder="Zusätzliche Notizen"
           name="notes"
           value={notes}
+          className="w-full"
           onChange={(e) => setNotes(e.target.value)}
         />
-        {shownError && <ErrorBox message={shownError} />}
+      </TileCard>
+
+      <div className="flex flex-wrap items-center gap-4">
         <Button
           type="submit"
           styleType="primary"
-          text="Fertig"
+          text={saving ? "Speichert…" : "Fertig"}
+          icon={Check}
           disabled={saving}
+          className=""
         />
-      </form>
-    </div>
+        {shownError && <ErrorBox message={shownError} />}
+      </div>
+    </form>,
   );
 }

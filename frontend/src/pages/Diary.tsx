@@ -1,5 +1,4 @@
 import useDiaryApi from "@/api/useDiaryApi";
-import DiaryEntryView from "@/components/diary/DiaryEntryView";
 import DiaryTodayFormular from "@/components/diary/DiaryTodayFormular";
 import MoodChart from "@/components/diary/MoodChart";
 import { sectionHeading } from "@/components/diary/accents";
@@ -68,11 +67,7 @@ export default function Diary() {
       <Headline children="Tagebuch" />
       {alreadySavedToday && entry ? (
         <div className="mt-8 space-y-10">
-          <DiaryEntryView
-            entry={entry}
-            activitiesTitle="Heute gespeicherte Aktivitäten"
-          />
-
+          Tageseintrag gespeichert!
           <div className="flex flex-wrap items-center gap-4">
             <Button
               type="button"
@@ -80,7 +75,6 @@ export default function Diary() {
               text="Zurücksetzen"
               icon={RotateCcw}
               onClick={handleReset}
-              className=""
             />
             {error && <ErrorBox message={error} />}
           </div>
