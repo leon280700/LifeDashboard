@@ -3,6 +3,7 @@ import { useGoalApi } from "../api/useGoalApi";
 import Goals from "../components/tracker/Goals";
 import Today from "../components/tracker/Today";
 import Graphs from "../components/tracker/Graphs";
+import Divider from "@/components/ui/Divider";
 import Headline from "@/components/ui/Headline";
 
 export default function Tracker() {
@@ -27,6 +28,7 @@ export default function Tracker() {
         goalsError={goalApi.loadError}
         onSaved={() => setEntryVersion((v) => v + 1)}
       />
+      <Divider />
       <Graphs refreshKey={entryVersion} />
     </div>
   );

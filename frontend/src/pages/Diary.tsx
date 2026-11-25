@@ -3,11 +3,12 @@ import DiaryTodayFormular from "@/components/diary/DiaryTodayFormular";
 import MoodChart from "@/components/diary/MoodChart";
 import { sectionHeading } from "@/components/diary/accents";
 import Button from "@/components/ui/Button";
+import Divider from "@/components/ui/Divider";
 import ErrorBox from "@/components/ui/ErrorBox";
 import Headline from "@/components/ui/Headline";
 import { today } from "@/helpers/dates";
 import type { DiaryEntry, DiaryFormValues } from "@/types/diary.types";
-import { RotateCcw } from "lucide-react";
+import { Divide, RotateCcw } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export default function Diary() {
@@ -88,6 +89,7 @@ export default function Diary() {
         />
       )}
 
+      <Divider />
       <section className="mt-12 pb-12">
         <h2 className={sectionHeading}>Verlauf</h2>
         <MoodChart refreshKey={entryVersion} />
