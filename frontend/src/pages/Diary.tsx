@@ -2,13 +2,11 @@ import useDiaryApi from "@/api/useDiaryApi";
 import DiaryTodayFormular from "@/components/diary/DiaryTodayFormular";
 import MoodChart from "@/components/diary/MoodChart";
 import { sectionHeading } from "@/components/diary/accents";
-import Button from "@/components/ui/Button";
 import Divider from "@/components/ui/Divider";
-import ErrorBox from "@/components/ui/ErrorBox";
+import SubmittedPanel from "@/components/ui/SubmittedPanel";
 import Headline from "@/components/ui/Headline";
 import { today } from "@/helpers/dates";
 import type { DiaryEntry, DiaryFormValues } from "@/types/diary.types";
-import { Divide, RotateCcw } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export default function Diary() {
@@ -67,19 +65,11 @@ export default function Diary() {
     <div className="mx-auto mt-12 max-w-6xl px-4">
       <Headline children="Tagebuch" />
       {alreadySavedToday && entry ? (
-        <div className="mt-8 space-y-10">
-          Tageseintrag gespeichert!
-          <div className="flex flex-wrap items-center gap-4">
-            <Button
-              type="button"
-              styleType="secondary"
-              text="Zurücksetzen"
-              icon={RotateCcw}
-              onClick={handleReset}
-            />
-            {error && <ErrorBox message={error} />}
-          </div>
-        </div>
+        <SubmittedPanel
+          title="Tageseintrag gespeichert!"
+          error={error}
+          onReset={handleReset}
+        />
       ) : (
         <DiaryTodayFormular
           initialValues={initialValues}

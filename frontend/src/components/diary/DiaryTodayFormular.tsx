@@ -1,9 +1,9 @@
 import ActivityTiles from "@/components/diary/ActivityTiles";
 import MoodPicker from "@/components/diary/MoodPicker";
 import { cardAccents, sectionHeading } from "@/components/diary/accents";
-import Button from "@/components/ui/Button";
 import NotesCard from "@/components/ui/NotesCard";
-import ErrorBox from "@/components/ui/ErrorBox";
+import FormPanel from "@/components/ui/FormPanel";
+import { formatLongDate, today } from "@/helpers/dates";
 import {
   symptoms_mental,
   symptoms_physical,
@@ -11,7 +11,7 @@ import {
   type Mood,
   type SymptomKey,
 } from "@/types/diary.types";
-import { Brain, Check, HeartPulse } from "lucide-react";
+import { Brain, HeartPulse } from "lucide-react";
 import { useState, type SubmitEvent } from "react";
 
 type Props = {
@@ -87,7 +87,14 @@ export default function DiaryTodayFormular({
   const shownError = validationError || error;
 
   return (
-    <form className="mt-8 space-y-10" onSubmit={handleSubmit}>
+    <FormPanel
+      title="Heutiger Eintrag"
+      subtitle={formatLongDate(today())}
+      submitText="Speichern"
+      saving={saving}
+      error={shownError}
+      onSubmit={handleSubmit}
+    >
       <div>
         <h2 className={sectionHeading}>Befinden</h2>
         <div className="grid gap-4 md:grid-cols-2">
@@ -126,18 +133,6 @@ export default function DiaryTodayFormular({
       </div>
 
       <NotesCard notes={notes} setNotes={setNotes} />
-
-      <div className="flex flex-wrap items-center gap-4">
-        <Button
-          type="submit"
-          styleType="primary"
-          text={saving ? "Speichert…" : "Speichern"}
-          icon={Check}
-          disabled={saving}
-          className=""
-        />
-        {shownError && <ErrorBox message={shownError} />}
-      </div>
-    </form>
+    </FormPanel>
   );
 }

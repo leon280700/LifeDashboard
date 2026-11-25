@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { useTrackerApi } from "../../api/useTrackerApi";
-import { today } from "../../helpers/dates";
+import { formatLongDate, today } from "../../helpers/dates";
 import type { Goal } from "../../types/tracker.types";
-import Button from "../ui/Button";
+import SubmittedPanel from "../ui/SubmittedPanel";
+import FormPanel from "../ui/FormPanel";
 import NotesCard from "../ui/NotesCard";
 import ErrorBox from "../ui/ErrorBox";
-import { Check, ListChecks, RotateCcw } from "lucide-react";
+import { Check, ListChecks } from "lucide-react";
 import type { ReactNode } from "react";
 import TileCard, { TileBadge } from "../diary/TileCard";
 import {
@@ -69,6 +70,7 @@ export default function Today({
     }
   };
 
+  const doneCount = goals.filter((g) => checks[g.id]).length;
   const accent = tileAccents.emerald;
 
   const section = (children: ReactNode) => (
@@ -86,26 +88,25 @@ export default function Today({
   }
 
   if (trackedToday) {
-    return section(
-      <div className="flex flex-wrap items-center gap-4">
-        <p className="text-white">Heute getrackt!</p>
-        <Button
-          type="button"
-          styleType="secondary"
-          text="Zurücksetzen"
-          icon={RotateCcw}
-          onClick={handleReset}
-          className=""
-        />
-        {shownError && <ErrorBox message={shownError} />}
-      </div>,
+    return (
+      <SubmittedPanel
+        title="Heute getrackt!"
+        description={`${doneCount} von ${goals.length} Zielen erreicht`}
+        error={shownError}
+        onReset={handleReset}
+      />
     );
   }
 
-  const doneCount = goals.filter((g) => checks[g.id]).length;
-
-  return section(
-    <form className="space-y-10" onSubmit={handleSubmit}>
+  return (
+    <FormPanel
+      title="Heute"
+      subtitle={formatLongDate(today())}
+      submitText="Speichern"
+      saving={saving}
+      error={shownError}
+      onSubmit={handleSubmit}
+    >
       <TileCard
         title="Ziele"
         icon={ListChecks}
@@ -154,18 +155,6 @@ export default function Today({
       </TileCard>
 
       <NotesCard notes={notes} setNotes={setNotes} />
-
-      <div className="flex flex-wrap items-center gap-4">
-        <Button
-          type="submit"
-          styleType="primary"
-          text={saving ? "Speichert…" : "Fertig"}
-          icon={Check}
-          disabled={saving}
-          className=""
-        />
-        {shownError && <ErrorBox message={shownError} />}
-      </div>
-    </form>,
+    </FormPanel>
   );
 }
